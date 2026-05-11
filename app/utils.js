@@ -1,0 +1,102 @@
+// NEXUS — Utility Functions
+// Pure functions only. No state. No DOM. Safe to call from anywhere.
+// Depends on: SEC_COLORS (state.js) and S (stocks.js) at call time — not at definition time.
+
+const fmtB=v=>v>=1000?(v/1000).toFixed(2)+'T':v>=1?v.toFixed(0)+'B':(v*1000).toFixed(0)+'M';
+const pct=(v,d=2)=>(v>=0?'+':'')+v.toFixed(d)+'%';
+
+function fmtRev(v){
+  if(v===null||v===undefined) return '—';
+  if(v>=1000) return '$'+(v/1000).toFixed(1)+'T';
+  if(v>=1)    return '$'+Math.round(v)+'B';
+  return '$'+(v*1000).toFixed(0)+'M';
+}
+
+function fmtNet(v){
+  if(v===null||v===undefined) return '—';
+  const a=Math.abs(v);
+  const s=a>=1?'$'+a.toFixed(1)+'B':'$'+(a*1000).toFixed(0)+'M';
+  return (v>=0?'&#9650;':'&#9660;')+s;
+}
+
+function fmtYTD(v){
+  if(v===null||v===undefined) return '—';
+  return (v>=0?'+':'')+v.toFixed(1)+'%';
+}
+
+function secColor(s){return SEC_COLORS[s]||'#4d9fff';}
+
+/** Cap-weight % of each ticker vs sum of Mcap ($B) in the given list — custom sector index weights. */
+function sectorMcapWeights(tickerKeys){
+  const map=Object.create(null);
+  if(!Array.isArray(tickerKeys)||typeof S==='undefined') return{totalMc:0,map};
+  let tot=0;
+  const rows=[];
+  tickerKeys.forEach(tk=>{
+    const st=S[tk];
+    if(st&&typeof st.mc==='number'&&st.mc>0){ tot+=st.mc; rows.push({tk,mc:st.mc}); }
+  });
+  if(tot<=0) return{totalMc:0,map};
+  rows.forEach(({tk,mc})=>{ map[tk]=(mc/tot)*100; });
+  return{totalMc:tot,map};
+}
+
+function maxMcapWeightTicker(tickerKeys){
+  const{map}=sectorMcapWeights(tickerKeys);
+  let bestTk='',best=0;
+  Object.keys(map).forEach(tk=>{ if(map[tk]>best){ best=map[tk]; bestTk=tk; } });
+  return{tk:bestTk,w:best};
+}
+
+/** Finnhub/WebSocket symbol (no exchange prefix for US; .L suffix for London). */
+function getFinnhubSymbol(tk){
+  const tv=getTVSym(tk);
+  const m=tv.match(/^(NASDAQ|NYSE|AMEX):(.+)$/i);
+  if(m) return m[2];
+  if(/^LON:/i.test(tv)) return tv.slice(4)+'.L';
+  return tk;
+}
+
+function getTVSym(tk){
+  const m={
+    ASML:'NASDAQ:ASML',TSM:'NYSE:TSM',OXIG:'LON:OXIG',
+    LHX:'NYSE:LHX',LDOS:'NYSE:LDOS',BAH:'NYSE:BAH',IRDM:'NASDAQ:IRDM',
+    ASTS:'NASDAQ:ASTS',PL:'NYSE:PL',RKLB:'NASDAQ:RKLB',
+    LMT:'NYSE:LMT',BA:'NYSE:BA',RTX:'NYSE:RTX',NOC:'NYSE:NOC',MP:'NYSE:MP',
+    IBM:'NYSE:IBM',IONQ:'NYSE:IONQ',RGTI:'NASDAQ:RGTI',QBTS:'NYSE:QBTS',
+    QUBT:'NASDAQ:QUBT',ARQQ:'NASDAQ:ARQQ',
+    COHR:'NASDAQ:COHR',VIAV:'NASDAQ:VIAV',LITE:'NASDAQ:LITE',
+    AAOI:'NASDAQ:AAOI',VECO:'NASDAQ:VECO',ACLS:'NASDAQ:ACLS',ONTO:'NYSE:ONTO',
+    ALAB:'NASDAQ:ALAB',QCOM:'NASDAQ:QCOM',MCHP:'NASDAQ:MCHP',
+    SNPS:'NASDAQ:SNPS',CDNS:'NASDAQ:CDNS',TXN:'NASDAQ:TXN',
+    STM:'NYSE:STM',ON:'NASDAQ:ON',GFS:'NASDAQ:GFS',UMC:'NYSE:UMC',
+    TSEM:'NASDAQ:TSEM',MKSI:'NASDAQ:MKSI',CMC:'NYSE:CMC',
+    CCJ:'NYSE:CCJ',URA:'NYSE:URA',GLD:'NASDAQ:GLD',
+    SLV:'AMEX:SLV',PPLT:'AMEX:PPLT',USO:'AMEX:USO',DBA:'AMEX:DBA',DBC:'AMEX:DBC',
+    COPX:'NYSE:COPX',CPER:'AMEX:CPER',ALB:'NYSE:ALB',LTHM:'NYSE:LTHM',LAC:'NYSE:LAC',
+  };
+  return m[tk]||`NASDAQ:${tk}`;
+}
+
+function layerAgg(layer){
+  const stks=layer.stocks.map(tk=>S[tk]).filter(Boolean);
+  const mc=stks.reduce((a,s)=>a+(s.mc||0),0);
+  const pes=stks.filter(s=>s.pe).map(s=>s.pe);
+  return{
+    mc,
+    avgPE:pes.length?pes.reduce((a,v)=>a+v,0)/pes.length:null,
+    avgCh:stks.reduce((a,s)=>a+s.ch,0)/(stks.length||1),
+    count:stks.length
+  };
+}
+
+function sectorSummary(sec){
+  const stks=getAllStocks(sec).map(tk=>S[tk]).filter(Boolean);
+  const mc=stks.reduce((a,s)=>a+(s.mc||0),0);
+  const pes=stks.filter(s=>s.pe).map(s=>s.pe);
+  return{
+    mc,
+    avgPE:pes.length?pes.reduce((a,v)=>a+v,0)/pes.length:null,
+    avgCh:stks.reduce((a,s)=>a+s.ch,0)/(stks.length||1)
+  };
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NEXUS &middot; Supply Chain Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Barlow:wght@400;500&amp;display=swap" rel="stylesheet">
+<link rel="stylesheet" href="nexus.css">
+</head>
+<body>
+
+<!-- WHEEL TOOLTIP (always present, shown/hidden by JS) -->
+<div class="wheel-tt" id="wheel-tt"></div>
+
+<!-- ADD TICKER MODAL -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <button class="m-close" onclick="closeModal()">&#10005;</button>
+    <div class="modal-t">ADD TICKER</div>
+    <div class="modal-s">Add any stock or ETF to a sector layer</div>
+    <div class="sugg-lbl">Quick Add &mdash; May 2026</div>
+    <div class="suggs">
+      <span class="sug" onclick="fill('CRWV','CoreWeave','AI','apps')">CRWV</span>
+      <span class="sug" onclick="fill('ARM','Arm Holdings','SEMICONDUCTOR','design')">ARM</span>
+      <span class="sug" onclick="fill('SNDK','SanDisk','AI','storage')">SNDK</span>
+      <span class="sug" onclick="fill('ALAB','AsteraLabs','PHOTONIC','apps')">ALAB</span>
+      <span class="sug" onclick="fill('BE','Bloom Energy','AI','power')">BE</span>
+      <span class="sug" onclick="fill('FIX','Comfort Systems','AI','power')">FIX</span>
+      <span class="sug" onclick="fill('CLS','Celestica','AI','compute')">CLS</span>
+      <span class="sug" onclick="fill('FORM','FormFactor','SEMICONDUCTOR','equipment')">FORM</span>
+    </div>
+    <div class="mf"><label>Ticker</label><input id="m-tk" placeholder="NVDA&hellip;" oninput="this.value=this.value.toUpperCase()" maxlength="12"/></div>
+    <div class="mf"><label>Company Name</label><input id="m-nm" placeholder="Company name&hellip;"/></div>
+    <div class="mf"><label>Sector</label>
+      <select id="m-sec" onchange="updateLayerDD()">
+        <option>AI</option><option>SPACE</option><option>QUANTUM</option>
+        <option>PHOTONIC</option><option>SEMICONDUCTOR</option><option>COMMODITY</option>
+      </select>
+    </div>
+    <div class="mf" id="m-layerwrap"><label>Layer</label><select id="m-layer"></select></div>
+    <div class="m-btns">
+      <button class="m-btn m-cancel" onclick="closeModal()">Cancel</button>
+      <button class="m-btn m-add" onclick="addTicker()">+ Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <span class="brand-n">NEXUS</span>
+    <span class="brand-s">SUPPLY CHAIN INTELLIGENCE</span>
+  </div>
+  <div class="vdiv"></div>
+  <div class="nm-row">
+    <button class="nm-btn on" id="nm-sectors" onclick="setNavMode('sectors',this)">SECTORS</button>
+    <button class="nm-btn" id="nm-themes" onclick="setNavMode('themes',this)">THEMES</button>
+  </div>
+  <div class="vdiv"></div>
+  <div class="spills" id="spills"></div>
+  <div class="hdr-r">
+    <div class="live-lbl"><div class="live-dot"></div>LIVE</div>
+    <span id="clock">--:--:-- ET</span>
+    <div class="vdiv"></div>
+    <button class="hbtn" onclick="adjFS(-.07)">A&minus;</button>
+    <button class="hbtn" onclick="adjFS(+.07)">A+</button>
+    <button class="hbtn add" onclick="openModal()">&#65291; TICKER</button>
+    <button class="hbtn" onclick="toggleWL()">&#9776;</button>
+  </div>
+</header>
+
+<!-- MAIN SHELL -->
+<div class="shell" id="shell">
+
+  <!-- LEFT: WATCHLIST -->
+  <aside class="wl" id="wl">
+    <div class="wl-hdr">
+      <span class="wl-ht">WATCHLIST</span>
+      <span class="wl-cnt" id="wlcnt">0</span>
+    </div>
+    <div class="wl-sc" id="wl-sc"></div>
+  </aside>
+
+  <!-- CENTER: TABS + VIEWS -->
+  <main class="cz" id="cz">
+    <div class="ctabs">
+      <button class="ctab on" onclick="setCTab('pyramid',this)">&#9650; PYRAMID</button>
+      <button class="ctab" onclick="setCTab('wheel',this)">&#9689; WHEEL</button>
+      <button class="ctab" onclick="setCTab('fundamentals',this)">&#128202; SCREENER</button>
+      <button class="ctab" onclick="setCTab('news',this)">&#10790; INTELLIGENCE</button>
+    </div>
+    <div class="sumbar" id="sumbar"></div>
+    <div id="cc" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden"></div>
+  </main>
+
+  <!-- RIGHT: DETAIL PANEL -->
+  <aside class="rp" id="rp">
+    <div class="rp-hdr">
+      <span class="rp-title" id="rp-title">SECTOR OVERVIEW</span>
+      <span class="rp-sec-badge" id="rp-badge" style="display:none">AI</span>
+    </div>
+    <div class="rp-tabs" id="rp-tabs" style="display:none">
+      <button class="rp-tab on" onclick="setRPTab('chart',this)">CHART</button>
+      <button class="rp-tab" onclick="setRPTab('data',this)">DATA</button>
+      <button class="rp-tab" onclick="setRPTab('news',this)">NEWS</button>
+    </div>
+    <div class="rp-body" id="rp-body"></div>
+  </aside>
+
+</div>
+
+<!-- SCRIPTS: load order is strict — data → utils → state → views → app -->
+<!-- LAYER 1: Data (no dependencies) -->
+<script src="data/stocks.js"></script>
+<script src="data/sectors.js"></script>
+<script src="data/themes.js"></script>
+<!-- LAYER 2: Utilities and state -->
+<script src="app/utils.js"></script>
+<script src="app/state.js"></script>
+<script src="app/finnhub-config.js"></script>
+<script src="app/live-prices.js"></script>
+<!-- LAYER 3: Views (stateless renderers, order within group doesn't matter) -->
+<script src="views/view-pyramid.js"></script>
+<script src="views/view-wheel.js"></script>
+<script src="views/view-screener.js"></script>
+<script src="views/view-news.js"></script>
+<script src="views/view-flat.js"></script>
+<!-- LAYER 4: App panels -->
+<script src="app/nav.js"></script>
+<script src="app/watchlist.js"></script>
+<script src="app/rightpanel.js"></script>
+<!-- LAYER 5: Master coordinator — calls init() — must be last -->
+<script src="app/app.js"></script>
+
+</body>
+</html>
