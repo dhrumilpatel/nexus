@@ -1,6 +1,6 @@
 # NEXUS v1 — Deployment (Vercel)
 
-**Repository:** [https://github.com/dhrumil-pat/nexus](https://github.com/dhrumil-pat/nexus) (private)
+**Repository:** [https://github.com/dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus) (private)
 
 Production hosting for the static dashboard with **automatic live price refresh** via Finnhub REST polling. API keys stay on the server (Vercel serverless proxy).
 
@@ -24,7 +24,7 @@ Production: key in Vercel env `FINNHUB_API_KEY` → `/api/finnhub`. Local: paste
 | Item | Value |
 |------|--------|
 | Host | [Vercel](https://vercel.com) Hobby (free) |
-| GitHub | [dhrumil-pat/nexus](https://github.com/dhrumil-pat/nexus) |
+| GitHub | [dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus) |
 | Live prices | `live-prices.js` → `/api/finnhub` → Finnhub `/quote` |
 | Poll interval | Default **120s** |
 | WebSocket | Local only (`finnhub-key.js` + `USE_WS=true`); off on Vercel |
@@ -37,8 +37,8 @@ Production: key in Vercel env `FINNHUB_API_KEY` → `/api/finnhub`. Local: paste
 
 ```bash
 cd Nexus
-git remote add origin https://github.com/dhrumil-pat/nexus.git
-# or: git remote set-url origin https://github.com/dhrumil-pat/nexus.git
+git remote add origin https://github.com/dhrumilpatel/nexus.git
+# or: git remote set-url origin https://github.com/dhrumilpatel/nexus.git
 git add .
 git commit -m "feat: NEXUS v1 — Vercel + Finnhub live prices"
 git push -u origin main
@@ -48,7 +48,7 @@ If the remote repo already has commits: `git pull --rebase origin main` before p
 
 ### 2. Import on Vercel
 
-1. [vercel.com/new](https://vercel.com/new) → Import **dhrumil-pat/nexus**.
+1. [vercel.com/new](https://vercel.com/new) → Import **dhrumilpatel/nexus**.
 2. **Framework Preset:** Other  
 3. **Root Directory:** folder with `index.html` (repo root if app is at top level).  
 4. **Build / output / install:** leave empty — [`vercel.json`](vercel.json) runs:
@@ -131,14 +131,14 @@ npx vercel dev
 
 **Pre-deploy**
 
-- [ ] Remote: `https://github.com/dhrumil-pat/nexus.git`
+- [ ] Remote: `https://github.com/dhrumilpatel/nexus.git`
 - [ ] `api/finnhub.js`, `vercel.json`, `finnhub-api.js`, `finnhub-config.deploy.js`, `finnhub-key.example.js` committed
 - [ ] No API keys in committed files
 - [ ] `index.html`: `finnhub-config.js` → `finnhub-key.js` → `finnhub-api.js`
 
 **Vercel**
 
-- [ ] Import **dhrumil-pat/nexus**
+- [ ] Import **dhrumilpatel/nexus**
 - [ ] `FINNHUB_API_KEY` set
 - [ ] Build log shows config + empty key file copy
 
