@@ -43,6 +43,7 @@ git checkout -b <type>/<short-slug>
 - `fix/` for bug fixes / issue-driven changes
 - `feature/` for new features
 - `poc/` for short proof-of-concept work
+- Choose prefix based on the actual content/scope of the change being committed.
 
 Use kebab-case suffixes (e.g. `fix/live-prices-flicker`, `feature/fmp-history-panel`, `poc/news-ranking-spike`).
 
