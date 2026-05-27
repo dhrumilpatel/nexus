@@ -1,5 +1,6 @@
 {
   "buildCommand": "cp app/finnhub-config.deploy.js app/finnhub-config.js && printf '%s\\n' \"window.NEXUS_FINNHUB_KEY='';\" > app/finnhub-key.js",
+  "outputDirectory": ".",
   "headers": [
     {
       "source": "/api/(.*)",
