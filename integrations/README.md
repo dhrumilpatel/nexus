@@ -12,11 +12,14 @@
 | `api-tradingview.md` | TradingView | 1A | Live |
 | `api-finnhub.md` | Finnhub | 2 | Partial |
 | `api-fmp.md` | FMP | 2 | Active |
+| `api-etf.md` (inline) | ETF holdings | 2 | Manual seed |
 | `api-perplexity.md` | Perplexity | 3 | Pending |
 | `api-sec-edgar.md` | SEC EDGAR | 3 | Pending |
 | `cache/README.md` | Node cache | 2 | Optional |
 
 Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
+
+**ETF mode (Phase 2-ready):** Manual registry in `data/etfs.js` (`ETF_SECTORS`). UI: top nav `ETF`, center `views/view-etf.js`, right panel `renderRPEtf()` in `app/rightpanel.js`. Phase 2 adapter: `app/etf-api.js` (`NexusEtfApi.fetchHoldings`, `normalizeEtf`, `mergeIntoEtf`) — wire a provider proxy the same way as FMP/Finnhub, then merge into the active ETF before `renderCenter()`.
 
 ---
 

@@ -34,23 +34,50 @@ let NEWS_SRC='tv';
 let TRAJ_PER=8;
 const WL_LAYERS={};  // {layerId: bool} — watchlist section expand/collapse
 
-// Navigation mode — 'sectors' | 'themes'
+// Navigation mode — 'sectors' | 'themes' | 'etf'
 let NAV_MODE='sectors';
 let CUR_THEME='NVIDIA';
+let CUR_ETF='SPACE';
+let SEL_ETF='TEMA_SPACE';
 
-// Returns the active pyramid config (sector or theme)
+// Returns the active pyramid config (sector or theme); null in ETF mode
 function getCurrentP(){
+  if(NAV_MODE==='etf') return null;
   return NAV_MODE==='themes'?THEMES_DATA[CUR_THEME]:PYRAMIDS[CUR];
+}
+
+function getEtfSector(){
+  if(typeof ETF_SECTORS==='undefined'||!CUR_ETF) return null;
+  return ETF_SECTORS[CUR_ETF]||null;
+}
+
+function getActiveEtf(){
+  const sec=getEtfSector();
+  if(!sec||!SEL_ETF||!sec.etfs) return null;
+  return sec.etfs[SEL_ETF]||null;
+}
+
+function getActiveEtfHoldings(){
+  const etf=getActiveEtf();
+  if(!etf||!Array.isArray(etf.holdings)) return [];
+  return etf.holdings.slice().sort((a,b)=>(b.weight||0)-(a.weight||0));
 }
 
 // Returns active accent color
 function getActiveColor(){
+  if(NAV_MODE==='etf'){
+    const sec=getEtfSector();
+    return sec?.color||'#3d9aff';
+  }
   if(NAV_MODE==='themes') return THEMES_DATA[CUR_THEME]?.color||'#f59e0b';
   return secColor(CUR);
 }
 
-// Returns all ticker keys for the active pyramid (deduped)
+// Returns all ticker keys for the active universe (deduped)
 function getActiveStocks(){
+  if(NAV_MODE==='etf'){
+    return [...new Set(getActiveEtfHoldings().map(h=>h.tk).filter(tk=>typeof S!=='undefined'&&S[tk]))];
+  }
   const p=getCurrentP(); if(!p) return [];
   if(p.type==='flat') return p.categories.flatMap(c=>c.stocks);
   return [...new Set(p.layers.flatMap(l=>l.stocks))];

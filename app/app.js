@@ -3,6 +3,24 @@
 // Owns: renderSummaryBar, renderCenter dispatcher, all click handlers, Add Ticker modal.
 
 function renderSummaryBar(){
+  if(NAV_MODE==='etf'){
+    const sec=getEtfSector();
+    const etf=getActiveEtf();
+    const holdings=getActiveEtfHoldings();
+    if(!sec||!etf){document.getElementById('sumbar').innerHTML='';return;}
+    const totW=holdings.reduce((a,h)=>a+(h.weight||0),0);
+    const liveN=holdings.filter(h=>typeof S!=='undefined'&&S[h.tk]).length;
+    document.getElementById('sumbar').innerHTML=`
+      <div class="sb-item sb-item-stack sb-item-mcap">
+        <div class="sb-mcap-row"><span class="sb-lbl">ETF</span><span class="sb-val acc">${etf.symbol||etf.label}</span></div>
+        <div class="sb-mcap-sub"><span class="sb-idx">${holdings.length} holdings · ${totW.toFixed(1)}% listed</span></div>
+      </div>
+      <div class="sb-item"><span class="sb-lbl">SECTOR</span><span class="sb-val">${sec.label}</span></div>
+      <div class="sb-item"><span class="sb-lbl">LIVE QUOTES</span><span class="sb-val">${liveN}/${holdings.length}</span></div>
+      <div class="sb-item"><span class="sb-lbl">AS OF</span><span class="sb-val">${etf.asOf||'—'}</span></div>
+      <div class="sb-item sb-item-label"><span class="sb-lbl sb-lbl-sec">${sec.label_full}</span></div>`;
+    return;
+  }
   const p=getCurrentP();
   if(!p||(p.type==='flat'&&CTAB!=='dashboard')){document.getElementById('sumbar').innerHTML='';return;}
   const tks=getActiveStocks();
@@ -34,6 +52,7 @@ function renderCenter(){
   const el=document.getElementById('cc');
   if(typeof nexusSankeyDispose==='function') nexusSankeyDispose(el);
   el.innerHTML='';
+  if(NAV_MODE==='etf'){renderEtfView(el);return;}
   const p=getCurrentP();
   if(CTAB==='dashboard')   {renderDashboardView(el);return;}
   if(CTAB==='sankey')      {renderSankeyFlowView(el);return;}
@@ -122,6 +141,7 @@ document.getElementById('modal').addEventListener('click',e=>{
 // ── Bootstrap ──────────────────────────────────────────────────────────────────
 function init(){
   buildPills();
+  if(typeof updateCenterTabsForMode==='function') updateCenterTabsForMode();
   setSectorCSS('AI');
   renderSummaryBar();
   renderWatchlist();
