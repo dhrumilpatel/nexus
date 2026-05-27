@@ -14,8 +14,6 @@
   let pollTimer=null;
   let pollBusy=false;
   let pendingResweep=false;
-  let wheelRedrawTimer=null;
-  let centerRedrawTimer=null;
   let sideRaf=null;
   const subscribed=new Set();
   const quoteCache={};
@@ -91,6 +89,15 @@
         if(px) px.textContent=st.px;
         return;
       }
+      if(node.classList&&node.classList.contains('wheel-node')){
+        const circle=node.querySelector('circle');
+        if(circle){
+          const c=(st.ch||0)>=5?'#00c97a':(st.ch||0)>=2?'#4ddb9a':(st.ch||0)>=0?'#6ee7b7':(st.ch||0)>=-2?'#ff8a8a':(st.ch||0)>=-5?'#ff4757':'#c0392b';
+          circle.setAttribute('fill',c);
+          if(SEL_STOCK!==tk) circle.setAttribute('stroke',c);
+        }
+        return;
+      }
       const pxEl=node.querySelector('.tile-px')||node.querySelector('.wr-px');
       const chEl=node.querySelector('.tile-ch')||node.querySelector('.wr-ch');
       if(pxEl) pxEl.textContent=st.px;
@@ -110,24 +117,30 @@
         if(typeof renderWatchlist==='function') renderWatchlist();
         if(typeof renderSummaryBar==='function') renderSummaryBar();
         if(typeof renderRightPanel==='function'&&typeof SEL_STOCK!=='undefined'&&SEL_STOCK) renderRightPanel();
+        patchDashboardIfActive();
       }catch(e){}
     });
   }
 
-  function maybeRedrawWheel(){
-    if(typeof CTAB==='undefined'||CTAB!=='wheel') return;
-    clearTimeout(wheelRedrawTimer);
-    wheelRedrawTimer=setTimeout(()=>{
-      wheelRedrawTimer=null;
-      if(typeof renderCenter==='function') renderCenter();
-    },useWs()?900:0);
+  function parsePxNumber(px){
+    if(px==null) return null;
+    const n=Number(String(px).replace(/[$,]/g,''));
+    return Number.isFinite(n)&&n>0?n:null;
   }
 
   function applyQuote(tk,j){
     const st=S[tk];
     if(!st||j==null||j.c==null||j.c===0) return false;
+    const prevPx=parsePxNumber(st.px);
     const c=Number(j.c), pc=j.pc!=null?Number(j.pc):null;
     st.px='$'+c.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if((st.mc||0)>0&&prevPx){
+      const ratio=c/prevPx;
+      if(Number.isFinite(ratio)&&ratio>0){
+        st.mc*=ratio;
+        st.ms='$'+fmtB(st.mc);
+      }
+    }
     if(typeof j.dp==='number'&&!Number.isNaN(j.dp)) st.ch=j.dp;
     else if(pc&&pc>0) st.ch=(c-pc)/pc*100;
     st._livePx=true;
@@ -143,18 +156,32 @@
     return list.slice().sort((a,b)=>(S[b]?.mc||0)-(S[a]?.mc||0));
   }
 
-  function scheduleCenterRefresh(){
-    if(typeof CTAB==='undefined'||typeof renderCenter!=='function') return;
-    if(CTAB!=='wheel') return;
-    clearTimeout(centerRedrawTimer);
-    centerRedrawTimer=setTimeout(()=>{
-      centerRedrawTimer=null;
-      renderCenter();
-    },400);
-  }
-
-  function refreshDashboardIfActive(){
-    if(typeof CTAB!=='undefined'&&CTAB==='dashboard'&&typeof renderCenter==='function') renderCenter();
+  function patchDashboardIfActive(){
+    if(typeof CTAB==='undefined'||CTAB!=='dashboard') return;
+    if(typeof getActiveStocks!=='function'||typeof S==='undefined') return;
+    const tks=getActiveStocks();
+    const stks=tks.map(tk=>S[tk]).filter(Boolean);
+    if(!stks.length) return;
+    const mcTot=stks.reduce((a,s)=>a+(s.mc||0),0);
+    const mcEl=document.querySelector('#cc .dash-card-mcap .dash-card-val-hero');
+    if(mcEl) mcEl.textContent='$'+fmtB(mcTot);
+    const subs=document.querySelectorAll('#cc .dash-card-mcap .dash-card-sub');
+    const nUp=stks.filter(s=>(s.ch||0)>0).length;
+    const cwCh=(typeof dashCapWtdCh==='function')?dashCapWtdCh(stks,mcTot):null;
+    if(subs[0]){
+      if(cwCh!=null){
+        subs[0].textContent=`Cap-wtd today ${pct(cwCh,2)}`;
+        subs[0].className='dash-card-sub '+(cwCh>=0?'up':'dn');
+      }else{
+        subs[0].textContent='Cap-wtd today —';
+        subs[0].className='dash-card-sub dash-dim';
+      }
+    }
+    if(subs[1]){
+      const liveOn=window.NexusLivePrices&&NexusLivePrices.isActive();
+      subs[1].textContent=`Breadth ${nUp}/${stks.length} advancing${liveOn?' · LIVE':''}`;
+      subs[1].className='dash-card-sub dash-card-sub-stack '+(nUp>=stks.length/2?'up':'dn');
+    }
   }
 
   function fetchQuote(tk){
@@ -191,13 +218,11 @@
           if(updated===1) setLiveStatus('active');
         }
         if(i%2===0||i===list.length-1) scheduleSidebarRenders();
-        if(i%4===0||i===list.length-1) scheduleCenterRefresh();
         if(i<PRIORITY_N-1) await sleep(200);
         else await sleep(REST_GAP_MS);
       }
       scheduleSidebarRenders();
-      scheduleCenterRefresh();
-      refreshDashboardIfActive();
+      patchDashboardIfActive();
       setLiveStatus(updated>0||finnhubActive()?'active':'static');
     }catch(e){
       setLiveStatus(finnhubActive()?'active':'static');
@@ -243,7 +268,7 @@
       patchTickerInDom(tk);
     });
     scheduleSidebarRenders();
-    maybeRedrawWheel();
+    patchDashboardIfActive();
   }
 
   function connectWs(){
@@ -272,8 +297,6 @@
     },
     stop(){
       if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
-      clearTimeout(wheelRedrawTimer);
-      wheelRedrawTimer=null;
       subscribed.clear();
       if(ws){ try{ ws.close(); }catch(e){} ws=null; }
       setLiveStatus('static');

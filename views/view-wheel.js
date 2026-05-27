@@ -87,7 +87,7 @@ function renderWheelView(el){
     const x=xPx(d.ytd||0), y=yPx(d.pe), r=bubR(d.mc);
     const c=bClr(d.ch), sel=SEL_STOCK===d.tk, noPE=!d.pe||d.pe<=0;
     const fs=Math.min(r*.9,11).toFixed(0);
-    svg+=`<g style="cursor:pointer" onmouseover="wheelTT(event,'${d.tk}',${(d.idxW||0).toFixed(4)})" onmouseout="hideWTT()" onclick="clickTile({stopPropagation:()=>{}}, '${d.tk}')">
+    svg+=`<g class="wheel-node" data-nexus-tk="${d.tk}" style="cursor:pointer" onmouseover="wheelTT(event,'${d.tk}',${(d.idxW||0).toFixed(4)})" onmouseout="hideWTT()" onclick="clickTile({stopPropagation:()=>{}}, '${d.tk}')">
       <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}"
         fill="${c}" fill-opacity="${noPE?.5:.78}"
         stroke="${sel?'#fff':c}" stroke-width="${sel?2.5:0.7}"
