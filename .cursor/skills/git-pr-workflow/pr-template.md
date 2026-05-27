@@ -7,9 +7,6 @@ Copy into `gh pr create --body "$(cat <<'EOF' ... EOF)"`.
 - 
 - 
 
-## Test plan
-- [ ] 
-- [ ] 
 ```
 
 ## Optional sections (add when useful)

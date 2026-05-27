@@ -2,7 +2,7 @@
 name: git-pr-workflow
 description: >-
   Git branch and GitHub PR workflow: always branch from updated main, safe commits,
-  push, and gh pr create with Summary and Test plan. Use when the user asks to
+  push, and gh pr create with a clear Summary. Use when the user asks to
   create a branch, commit, push, open a pull request, or follow git best practices.
 disable-model-invocation: true
 ---
@@ -98,10 +98,6 @@ gh pr create --title "Short imperative title" --body "$(cat <<'EOF'
 - What changed and why (bullet 1)
 - User-visible impact or risk (bullet 2)
 
-## Test plan
-- [ ] Step a reviewer can run
-- [ ] Expected result
-
 EOF
 )"
 ```
@@ -111,7 +107,6 @@ EOF
 | Section | Rule |
 |---------|------|
 | `## Summary` | 1–3 bullets — what and why |
-| `## Test plan` | Checklist — how to verify |
 
 Use [pr-template.md](pr-template.md) as the skeleton. **No empty PRs.**
 
@@ -156,7 +151,7 @@ Return the **PR URL** to the user when done.
 
 - Remote: `origin` → `https://github.com/dhrumilpatel/nexus` (private).
 - Do not commit `app/finnhub-key.js` (gitignored).
-- Deploy or live-price changes: include Vercel / LIVE badge checks in **Test plan** — see [deployment.md](../../../deployment.md).
+- Deploy or live-price changes: include quick Vercel / LIVE verification notes in PR summary — see [deployment.md](../../../deployment.md).
 
 ---
 
@@ -167,6 +162,6 @@ Return the **PR URL** to the user when done.
 - [ ] Feature branch created from main
 - [ ] Commits: intended files only, no secrets
 - [ ] Pushed with upstream
-- [ ] PR has Summary + Test plan
+- [ ] PR has a clear Summary
 - [ ] PR URL shared with user
 ```
