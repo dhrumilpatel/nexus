@@ -1,50 +1,13 @@
-# Financial Modeling Prep (FMP)
+# FMP
 
-**Phase:** 2 · **Cost:** Free 250 req/day  
-**Status:** Pending · **Target:** `app/api-fmp.js`  
-**Docs:** https://financialmodelingprep.com/developer/docs  
-**Proxy:** `integrations/README.md` → Proxy pattern  
-**Cache:** `cache/README.md`, `scripts/fundamentals-cache.mjs`
-
----
-
-## Role vs Finnhub
+**Phase:** 2 · **250 req/day** · **Pending** · `app/api-fmp.js`
+**Proxy:** `integrations/README.md` · **Cache:** `cache/README.md`
 
 | Data | Source |
 |------|--------|
-| Live price / today % | Finnhub |
-| Current PE, MCap, EPS | Finnhub `/metric` |
-| Historical quarterly MCap, PE | **FMP** |
-| Annual revenue / net income | **FMP** |
-| Segment revenue | **FMP** |
+| Live / current | Finnhub |
+| Hist MCap, PE, rev, net | **FMP** |
 
-Powers right-panel DATA sparklines (`HIST[tk].mc[]`, `pe[]`) — 8 quarters.
+Endpoints: `/historical-market-capitalization/{sym}`, `/income-statement/{sym}`, `/ratios/{sym}` (8Q).
 
----
-
-## Key endpoints
-
-```
-GET /historical-market-capitalization/{sym}?limit=8&apikey=KEY
-GET /income-statement/{sym}?period=annual&limit=4&apikey=KEY
-GET /ratios/{sym}?period=quarter&limit=8&apikey=KEY
-GET /profile/{sym}?apikey=KEY
-```
-
-Map MCap to $B (`/1e9`); income `revenue` / `netIncome` → `S[tk].rev` / `net` overrides on load.
-
----
-
-## Phase 2 plan
-
-**New:** `app/api-fmp.js` (`getHistory()`, `getIncomeStatement()`, session `histCache`), `api/fmp.js` proxy.
-
-**Modify:** `rightpanel.js` — async `getHistory()` replaces mock `HIST{}`; loading state on DATA tab.
-
-**Strategy:** Fetch on DATA tab open only; ~2 calls/stock; 250/day cap → no preload on page load. Keep `stocks.js` rev/net as fallbacks.
-
----
-
-## Limits
-
-250 req/day — on-demand per ticker per session. Historical depth 5y on free tier (enough for 8Q sparklines).
+**Plan:** `api-fmp.js` proxy + `getHistory()` in `rightpanel.js`; fetch on DATA tab open only; `stocks.js` fallbacks.

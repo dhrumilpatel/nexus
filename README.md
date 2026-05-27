@@ -1,64 +1,35 @@
-# NEXUS v8 — Root
+# NEXUS v1
 
-**App code path:** JavaScript lives in **`app/`**, **`data/`**, and **`views/`** next to `index.html`. If you opened parent `Downloads/Nexus`, expand the inner **`Nexus`** folder.
+**Path:** `app/`, `data/`, `views/` next to `index.html` (inner `Nexus/` if repo is nested).
 
-Personal stock intelligence dashboard: supply-chain pyramids across **AI, Space, Quantum, Photonics, Semiconductors, Nuclear, Commodity**; **Dashboard** (Mcap KPI, Finnhub analyst sentiment, movers, tier donuts); **WHEEL** (YTD × P/E, cap-weight index %); optional Finnhub live quotes. Vercel, no build step, HTML/CSS/JS.
+Supply-chain dashboard: **AI, Space, Quantum, Photonics, Semi, Nuclear, Commodity** pyramids; **Dashboard** (Mcap, Finnhub sentiment, movers); **WHEEL** (YTD × P/E, cap-weight index). Vercel static app.
 
 | Feature | Notes |
 |---------|--------|
-| Pyramid | Sankey band widths, fixed `--py-tile-w` tiles, centered sparse rows |
-| WHEEL | `sectorMcapWeights` in `utils.js`; summary **Idx max** |
-| Live quotes | Vercel: `FINNHUB_API_KEY` — see [`deployment.md`](deployment.md); local: `finnhub-key.js` + `finnhub-config.example.js` |
-| Charts | TradingView widgets — `integrations/api-tradingview.md` |
+| Pyramid | Sankey widths, fixed `--py-tile-w` tiles |
+| WHEEL | `sectorMcapWeights`; summary **Idx max** |
+| Live quotes | [`deployment.md`](deployment.md) / `finnhub-key.js` |
+| Charts | `integrations/api-tradingview.md` |
 
-**Docs:** folder map and “where to start” → [`DOCUMENTATION.md`](DOCUMENTATION.md). Architecture/schemas → [`AGENT-GUIDE.md`](AGENT-GUIDE.md). Integrations/phases → [`integrations/README.md`](integrations/README.md).
-
----
-
-## Where code lives
-
-| Layer | Path |
-|-------|------|
-| Data | `data/stocks.js`, `sectors.js`, `themes.js` |
-| Views | `views/view-*.js` |
-| App | `app/*.js` + `index.html` + `nexus.css` |
-| Node cache | `cache/`, `scripts/fundamentals-cache.mjs` — `cache/README.md` |
-
-Full tree: **DOCUMENTATION.md → Doc layout**.
+**Docs:** [`DOCUMENTATION.md`](DOCUMENTATION.md) · [`AGENT-GUIDE.md`](AGENT-GUIDE.md) · [`integrations/README.md`](integrations/README.md)
 
 ---
 
-## The Core Rule
+## Core rule
 
-**Data never contains logic. Views never modify state. App coordinates but doesn't render.**
-
-If a change requires touching more than one folder, the architecture has been violated.
+**Data = no logic. Views = no state writes. App = coordinate only.**
 
 ---
 
-## How to Add Something
+## How to add
 
-| What | File | Folder |
-|------|------|--------|
-| New ticker | stocks.js | data/ |
-| New sector pyramid | sectors.js | data/ |
-| New sector pill + accent | state.js (`SEC_LABELS`, `SEC_COLORS`) | app/ |
-| New theme | themes.js | data/ |
-| New visual/tab | view-newname.js | views/ |
-| New styling | nexus.css | root |
-| Navigation / right panel | nav.js / rightpanel.js | app/ |
-| Fundamentals disk cache (Node) | `scripts/fundamentals-cache.mjs` | `cache/README.md` |
+| What | File |
+|------|------|
+| Ticker | `data/stocks.js` |
+| Sector | `data/sectors.js` + `app/state.js` labels/colors |
+| Theme | `data/themes.js` |
+| View | `views/view-*.js` |
+| Style | `nexus.css` |
+| Nav / panel | `app/nav.js` / `rightpanel.js` |
 
----
-
-## Script load order
-
-Strict order in **AGENT-GUIDE.md → Vercel Deployment Notes** (canonical `<script>` block). Summary: `data/*` → `app/utils` … `live-prices` → ECharts → `views/*` → `nav` → `watchlist` → `rightpanel` → `app.js`.
-
----
-
-## Deployment
-
-**NEXUS v1 on Vercel:** [`deployment.md`](deployment.md) (env vars, live prices, smoke tests, handover checklist). Short pointer: `integrations/hosting-vercel.md`.
-
-**Phase status:** `integrations/README.md`.
+Script order: **AGENT-GUIDE.md → Vercel** (canonical block). Deploy: **deployment.md**.
