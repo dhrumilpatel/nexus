@@ -11,12 +11,12 @@
 | `hosting-vercel.md` | Vercel | 1A | Active |
 | `api-tradingview.md` | TradingView | 1A | Live |
 | `api-finnhub.md` | Finnhub | 2 | Partial |
-| `api-fmp.md` | FMP | 2 | Pending |
+| `api-fmp.md` | FMP | 2 | Active |
 | `api-perplexity.md` | Perplexity | 3 | Pending |
 | `api-sec-edgar.md` | SEC EDGAR | 3 | Pending |
 | `cache/README.md` | Node cache | 2 | Optional |
 
-Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Charts: `api-tradingview.md`.
+Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
 
 ---
 
@@ -52,6 +52,6 @@ SEC: public, no proxy.
 
 ## Phase readiness
 
-**2:** Finnhub + FMP keys; Vercel env; [x] `live-prices.js` + `finnhub-key.js` / proxy.
+**2:** Finnhub + FMP keys; Vercel env; [x] `live-prices.js` + `finnhub-key.js` / proxy + `api/fmp.js` + `app/api-fmp.js` on-demand DATA tab fetch.
 
 **3:** Perplexity; CIK map; `app/api-perplexity.js`, `app/api-sec.js`.

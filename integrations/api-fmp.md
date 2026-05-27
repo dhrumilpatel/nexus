@@ -1,6 +1,6 @@
 # FMP
 
-**Phase:** 2 · **250 req/day** · **Pending** · `app/api-fmp.js`
+**Phase:** 2 · **250 req/day** · **Active** · `app/api-fmp.js`
 **Proxy:** `integrations/README.md` · **Cache:** `cache/README.md`
 
 | Data | Source |
@@ -8,6 +8,9 @@
 | Live / current | Finnhub |
 | Hist MCap, PE, rev, net | **FMP** |
 
-Endpoints: `/historical-market-capitalization/{sym}`, `/income-statement/{sym}`, `/ratios/{sym}` (8Q).
+Endpoints via `/api/fmp` proxy:
+- `/historical-market-capitalization/{sym}` (market cap trajectory)
+- `/income-statement/{sym}` (revenue, net income)
+- `/ratios/{sym}` (P/E trajectory)
 
-**Plan:** `api-fmp.js` proxy + `getHistory()` in `rightpanel.js`; fetch on DATA tab open only; `stocks.js` fallbacks.
+`rightpanel.js` calls `NexusFmpApi.getHistory()` on DATA tab open only (no bulk prefetch), caches per symbol (~5 min), and falls back to `stocks.js` + static `HIST` when FMP is unavailable.

@@ -13,12 +13,44 @@ const HIST={
   IBM: {q:["Q1'23","Q2'23","Q3'23","Q4'23","Q1'24","Q2'24","Q3'24","Q4'24"],mc:[128,134,140,148,158,178,198,221],pe:[20,21,21,22,22,24,25,26]},
   IONQ:{q:["Q1'23","Q2'23","Q3'23","Q4'23","Q1'24","Q2'24","Q3'24","Q4'24"],mc:[2.8,2.4,3.6,4.2,4.8,6.2,7.4,8.8],pe:[null,null,null,null,null,null,null,null]},
 };
+const FMP_HIST_CACHE = {};
+const FMP_HIST_TTL_MS = 5 * 60 * 1000;
+
+function getTrajHist(tk){
+  const fmp = FMP_HIST_CACHE[tk]?.hist;
+  if (fmp?.q?.length) return fmp;
+  return HIST[tk] || null;
+}
+function getFmpSnapshot(tk){
+  const hist = FMP_HIST_CACHE[tk]?.hist;
+  if (!hist) return null;
+  return { rev: hist.rev, net: hist.net };
+}
+function ensureFmpHistory(tk){
+  const ticker = String(tk || '').toUpperCase();
+  if (!ticker || !window.NexusFmpApi?.getHistory) return;
+  const cache = FMP_HIST_CACHE[ticker];
+  const now = Date.now();
+  if (cache?.pending) return;
+  if (cache?.hist && now - cache.ts < FMP_HIST_TTL_MS) return;
+  FMP_HIST_CACHE[ticker] = { ...(cache || {}), pending: true, ts: now };
+  window.NexusFmpApi.getHistory(ticker)
+    .then(hist => {
+      const prev = FMP_HIST_CACHE[ticker] || {};
+      FMP_HIST_CACHE[ticker] = { ...prev, pending: false, ts: Date.now(), hist: hist || prev.hist || null };
+      if (SEL_STOCK === ticker && RPTAB === 'data') renderRPStock();
+    })
+    .catch(() => {
+      const prev = FMP_HIST_CACHE[ticker] || {};
+      FMP_HIST_CACHE[ticker] = { ...prev, pending: false, ts: Date.now() };
+    });
+}
 
 let TRAJ_PER_VAL=8;
 function setTrajPer(n){TRAJ_PER_VAL=n;if(SEL_STOCK)renderRPStock();}
 
 function buildTraj(st){
-  const hist=HIST[SEL_STOCK]; if(!hist) return '';
+  const hist=getTrajHist(SEL_STOCK); if(!hist) return '';
   const n=Math.min(TRAJ_PER_VAL,hist.q.length);
   const mcd=hist.mc.slice(-n), ped=hist.pe.slice(-n);
   return`<div class="rp-traj">
@@ -210,6 +242,10 @@ function renderRPStock(){
   if(RPTAB==='chart'){
     body=`${hero}<div class="rp-chart" id="rpc-el"></div>${buildTraj(st)}`;
   } else if(RPTAB==='data'){
+    const fmpSnapshot = getFmpSnapshot(SEL_STOCK) || {};
+    const revVal = fmpSnapshot.rev ?? st.rev;
+    const netVal = fmpSnapshot.net ?? st.net;
+    const netClass = (netVal ?? 0) >= 0 ? 'up' : 'dn';
     const ytdCls=(st.ytd||0)>=0?'up':'dn';
     body=`${hero}
     <div class="rp-ytd-row">
@@ -218,7 +254,7 @@ function renderRPStock(){
     </div>
     <div class="rp-mg">
       ${[['MCap',st.ms,'acc'],['P/E',st.pe?st.pe.toFixed(1)+'x':'N/A','acc'],
-         ['Revenue',fmtRev(st.rev),''],['Net Income',fmtNet(st.net),(st.net||0)>=0?'up':'dn'],
+         ['Revenue',fmtRev(revVal),''],['Net Income',fmtNet(netVal),netClass],
          ['EPS','$'+st.eps,''],['Beta',st.be,''],
          ['52W Hi',st.hi,'up'],['52W Lo',st.lo,'dn'],
          ['Volume',st.vl,''],['Avg Vol',st.av,'']
@@ -245,6 +281,8 @@ function renderRPStock(){
   }
 
   document.getElementById('rp-body').innerHTML=body;
+
+  if (RPTAB === 'data') ensureFmpHistory(SEL_STOCK);
 
   if(RPTAB==='chart'){
     clearTimeout(rpChDbn); rpChDbn=setTimeout(()=>{
