@@ -1,14 +1,14 @@
 ---
-description: Nexus compressed project context (ETF mode, data, identity)
+description: Nexus compressed project context — keep ≤12 bullets, update proactively
 alwaysApply: true
 ---
 
 # Nexus — compressed context
 
-- **Repo:** `dhrumilpatel/nexus` · author `dhrumil4u <dhrumil4u@gmail.com>` · no direct commits to `main`
-- **Branches:** `fix/` · `feature/` · `poc/` by change type
-- **ETF mode (PR #8):** top nav `ETF` → `data/etfs.js` (`ETF_SECTORS`) · `views/view-etf.js` ring + table · `app/etf-api.js` Phase 2 · right panel `renderRPEtf()`
-- **ETF sectors:** AI (Humanoid) · SPACE (TEMA/NASA, MARS) · MEMORY (DRAM) · PHOTONICS (LYTE, EUV) · SEMI (SMH) · GREEN (basket) · COMM
-- **Sticker list:** `data/stocks.js` const `S` — add tickers here with `tags` for sector mapping; ETF holdings reference `tk` keys
-- **Infographic seed:** @Sancompounding weights May 2026 (DRAM, LYTE, MARS, Green, EUV, Humanoid, Tema Space)
-- **Deploy:** Vercel static root · `vercel.json` `outputDirectory: "."`
+- **Repo:** `dhrumilpatel/nexus` · `dhrumil4u <dhrumil4u@gmail.com>` · never commit to `main`
+- **PR workflow:** pull latest `main` → check prior PR **merged** → one light PR per concern → new branch for follow-ups (see `.cursor/skills/git-pr-workflow/`)
+- **Branches:** `fix/` · `feature/` · `poc/` · `docs/` by scope
+- **ETF mode (merged #8):** `NAV_MODE=etf` · `data/etfs.js` · `views/view-etf.js` · `app/etf-api.js`
+- **ETF data (merged #9):** infographic seeds — DRAM, LYTE, EUV, MARS, Humanoid, Green, Tema · `data/stocks.js`
+- **Sticker list:** `data/stocks.js` → `S` + `tags[]` for sector mapping
+- **Deploy:** Vercel static · `vercel.json` `outputDirectory: "."`
