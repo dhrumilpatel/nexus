@@ -1,6 +1,6 @@
 # NEXUS — External services & hosting
 
-Documentation for every external service NEXUS uses or will use. One file per integration. Each file is self-contained — you can set up an integration from that file alone.
+One file per integration. **Deploy:** [`../deployment.md`](../deployment.md). API details in each `api-*.md`.
 
 ---
 
@@ -10,64 +10,66 @@ Documentation for every external service NEXUS uses or will use. One file per in
 |------|---------|-------|--------|------|
 | `hosting-vercel.md` | Vercel | 1A | Active | Free |
 | `api-tradingview.md` | TradingView Widgets | 1A | Live | Free |
-| `api-finnhub.md` | Finnhub | 2 | **Partial** — quotes in `live-prices.js` (key in `finnhub-config.js`) | Free tier |
-| `api-fmp.md` | Financial Modeling Prep | 2 | Pending | Free tier |
+| `api-finnhub.md` | Finnhub | 2 | Partial — `live-prices.js`, `finnhub-dashboard.js` | Free tier |
+| `api-fmp.md` | FMP | 2 | Pending | Free tier |
 | `api-perplexity.md` | Perplexity Sonar Pro | 3 | Pending | Pay-per-query |
 | `api-sec-edgar.md` | SEC EDGAR | 3 | Pending | Free |
+| `cache/README.md` | Node fundamentals cache | 2 | Optional | Free |
 
----
-
-## Integration by feature
-
-| Feature | Integration | File |
-|---------|-------------|------|
-| Hosting + deployment | Vercel | `hosting-vercel.md` |
-| Stock charts | TradingView Advanced Chart | `api-tradingview.md` |
-| News timeline | TradingView Timeline | `api-tradingview.md` |
-| Live tile prices (today) | Finnhub REST + optional WebSocket | `app/live-prices.js`, `api-finnhub.md` |
-| P/E, EPS, fundamentals (not yet wired to UI) | Finnhub REST | `api-finnhub.md` |
-| Historical MCap + PE | FMP REST | `api-fmp.md` |
-| Revenue + net income history | FMP REST | `api-fmp.md` |
-| AI research Q&A | Perplexity Sonar Pro | `api-perplexity.md` |
-| Insider trades Form 4 | SEC EDGAR | `api-sec-edgar.md` |
-| Company filings 8-K | SEC EDGAR | `api-sec-edgar.md` |
+| Feature | File |
+|---------|------|
+| Hosting | `hosting-vercel.md` |
+| Charts + news widgets | `api-tradingview.md` |
+| Live prices + analyst KPI | `api-finnhub.md`, `app/live-prices.js` |
+| Historical MCap/PE, revenue history | `api-fmp.md` |
+| Disk cache (TTL) | `cache/README.md`, `scripts/fundamentals-cache.mjs` |
+| AI research Q&A | `api-perplexity.md` |
+| Form 4 / 8-K | `api-sec-edgar.md` |
 
 ---
 
 ## Environment variables (Phase 2+)
 
-Store API keys in Vercel environment variables — never commit keys in code.
+Vercel dashboard or `.env.local` (gitignored):
 
 ```
-FINNHUB_API_KEY          Phase 2 — Finnhub free tier key
-FMP_API_KEY              Phase 2 — Financial Modeling Prep key
-PERPLEXITY_API_KEY       Phase 3 — Sonar Pro key
+FINNHUB_API_KEY
+FMP_API_KEY
+PERPLEXITY_API_KEY
+NEXUS_CACHE_DIR          # optional; defaults to Nexus/cache/
 ```
 
-For local development, create `.env.local` (gitignored):
-
-```
-FINNHUB_API_KEY=your_key_here
-FMP_API_KEY=your_key_here
-```
-
-**Important:** NEXUS is a static frontend. API keys cannot be hidden in a pure static deploy. Phase 2 requires either a thin serverless function (Vercel functions, free) to proxy API calls, or acceptance that keys are client-exposed. See each integration file for the recommended approach per API.
+Static deploy: keys are visible in client code unless proxied. Use **Proxy pattern** below for public repos.
 
 ---
 
-## Phase readiness checklist
+## Proxy pattern (static deploy)
 
-**Before Phase 2:**
+Thin Vercel serverless handler — one pattern, different env keys and upstream URLs.
 
-- [ ] Finnhub account created, free API key obtained
-- [ ] FMP account created, free API key obtained
-- [ ] Vercel project connected to GitHub repo
-- [ ] Environment variables set in Vercel dashboard
-- [x] `app/live-prices.js` + `app/finnhub-config.js` (see `api-finnhub.md` for proxy / future `api.js` if desired)
+```javascript
+// api/finnhub.js (example — duplicate as api/fmp.js with FMP_API_KEY + fmp base URL)
+export default async function handler(req, res) {
+  const { path, ...params } = req.query;
+  const qs = new URLSearchParams({ ...params, token: process.env.FINNHUB_API_KEY });
+  const r = await fetch(`https://finnhub.io/api/v1/${path}?${qs}`);
+  res.json(await r.json());
+}
+// Client: fetch('/api/finnhub?path=quote&symbol=NVDA')
+```
 
-**Before Phase 3:**
+| API | Env var | Upstream base | Query auth param |
+|-----|---------|---------------|------------------|
+| Finnhub | `FINNHUB_API_KEY` | `https://finnhub.io/api/v1/` | `token` |
+| FMP | `FMP_API_KEY` | `https://financialmodelingprep.com/api/v3/` | `apikey` |
+| Perplexity | `PERPLEXITY_API_KEY` | `https://api.perplexity.ai/chat/completions` | `Authorization: Bearer` header (POST body) |
 
-- [ ] Perplexity API access granted (Sonar Pro tier)
-- [ ] SEC EDGAR company CIK numbers mapped for key tickers
-- [ ] `app/api-perplexity.js` scaffolded
-- [ ] `app/api-sec.js` scaffolded
+SEC EDGAR: public — no proxy. Perplexity: see `api-perplexity.md` for POST body shape.
+
+---
+
+## Phase readiness
+
+**Phase 2:** Finnhub + FMP keys; Vercel connected; env vars set; [x] `live-prices.js` + `finnhub-config.js` + `finnhub-key.js` (local) / Vercel env.
+
+**Phase 3:** Perplexity access; CIK map for key tickers; scaffold `app/api-perplexity.js`, `app/api-sec.js`.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NEXUS &middot; Supply Chain Intelligence</title>
+<title>NEXUS v1 &middot; Supply Chain Intelligence</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;family=Barlow:wght@400;500&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="nexus.css">
 </head>
@@ -21,13 +21,13 @@
     <div class="sugg-lbl">Quick Add &mdash; May 2026</div>
     <div class="suggs">
       <span class="sug" onclick="fill('CRWV','CoreWeave','AI','apps')">CRWV</span>
-      <span class="sug" onclick="fill('ARM','Arm Holdings','SEMICONDUCTOR','design')">ARM</span>
+      <span class="sug" onclick="fill('ARM','Arm Holdings','SEMICONDUCTOR','compute')">ARM</span>
       <span class="sug" onclick="fill('SNDK','SanDisk','AI','storage')">SNDK</span>
-      <span class="sug" onclick="fill('ALAB','AsteraLabs','PHOTONIC','apps')">ALAB</span>
+      <span class="sug" onclick="fill('ALAB','AsteraLabs','PHOTONIC','pics')">ALAB</span>
       <span class="sug" onclick="fill('BE','Bloom Energy','AI','power')">BE</span>
       <span class="sug" onclick="fill('FIX','Comfort Systems','AI','power')">FIX</span>
       <span class="sug" onclick="fill('CLS','Celestica','AI','compute')">CLS</span>
-      <span class="sug" onclick="fill('FORM','FormFactor','SEMICONDUCTOR','equipment')">FORM</span>
+      <span class="sug" onclick="fill('FORM','FormFactor','SEMICONDUCTOR','test_pack')">FORM</span>
     </div>
     <div class="mf"><label>Ticker</label><input id="m-tk" placeholder="NVDA&hellip;" oninput="this.value=this.value.toUpperCase()" maxlength="12"/></div>
     <div class="mf"><label>Company Name</label><input id="m-nm" placeholder="Company name&hellip;"/></div>
@@ -59,7 +59,7 @@
   <div class="vdiv"></div>
   <div class="spills" id="spills"></div>
   <div class="hdr-r">
-    <div class="live-lbl"><div class="live-dot"></div>LIVE</div>
+    <div class="live-lbl live-static" id="live-lbl" title="Finnhub live quotes"><div class="live-dot" id="live-dot"></div><span id="live-txt">STATIC</span></div>
     <span id="clock">--:--:-- ET</span>
     <div class="vdiv"></div>
     <button class="hbtn" onclick="adjFS(-.07)">A&minus;</button>
@@ -84,7 +84,9 @@
   <!-- CENTER: TABS + VIEWS -->
   <main class="cz" id="cz">
     <div class="ctabs">
-      <button class="ctab on" onclick="setCTab('pyramid',this)">&#9650; PYRAMID</button>
+      <button class="ctab on" onclick="setCTab('dashboard',this)">&#9632; DASHBOARD</button>
+      <button class="ctab" onclick="setCTab('pyramid',this)">&#9650; PYRAMID</button>
+      <button class="ctab" onclick="setCTab('sankey',this)">&#8764; SANKEY FLOW</button>
       <button class="ctab" onclick="setCTab('wheel',this)">&#9689; WHEEL</button>
       <button class="ctab" onclick="setCTab('fundamentals',this)">&#128202; SCREENER</button>
       <button class="ctab" onclick="setCTab('news',this)">&#10790; INTELLIGENCE</button>
@@ -118,9 +120,15 @@
 <script src="app/utils.js"></script>
 <script src="app/state.js"></script>
 <script src="app/finnhub-config.js"></script>
+<script src="app/finnhub-key.js"></script>
+<script src="app/finnhub-api.js"></script>
+<script src="app/finnhub-dashboard.js"></script>
 <script src="app/live-prices.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <!-- LAYER 3: Views (stateless renderers, order within group doesn't matter) -->
+<script src="views/view-dashboard.js"></script>
 <script src="views/view-pyramid.js"></script>
+<script src="views/view-sankey-flow.js"></script>
 <script src="views/view-wheel.js"></script>
 <script src="views/view-screener.js"></script>
 <script src="views/view-news.js"></script>

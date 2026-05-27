@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "symbol": "NVDA",
+  "blocks": {
+    "quote": {
+      "fetchedAt": 1710000000000,
+      "ttlMs": 30000,
+      "data": { "c": 950.12, "pc": 940 }
+    },
+    "fundamentals_pe_mcap_52w": {
+      "fetchedAt": 1710000000000,
+      "ttlMs": 86400000,
+      "data": { "pe": 65, "mcapB": 2.3 }
+    },
+    "fundamentals_eps_beta": {
+      "fetchedAt": 1710000000000,
+      "ttlMs": 604800000,
+      "data": { "eps": 1.2, "beta": 1.8 }
+    },
+    "fundamentals_revenue_net": {
+      "fetchedAt": 1710000000000,
+      "ttlMs": 7776000000,
+      "data": { "revB": 60.9, "netB": 29.8 }
+    },
+    "analyst_ratings": {
+      "fetchedAt": 1710000000000,
+      "ttlMs": 604800000,
+      "data": {}
+    }
+  }
+}

@@ -1,0 +1,3 @@
+# Ephemeral fundamentals cache (per-ticker JSON)
+*.json
+!*.example.json

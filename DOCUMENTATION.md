@@ -1,8 +1,8 @@
 # NEXUS — Documentation index
 
-Markdown reference for developers and agents. These files ship with the repo (and static hosting) but are not required for the UI to run.
+Markdown for developers and agents. Not required for the UI.
 
-**Rule:** Application code lives in `data/`, `views/`, `app/`, plus `index.html` and `nexus.css`. Long-form docs live in this directory and in `integrations/` as `.md` files.
+**Rule:** App code = `data/`, `views/`, `app/`, `index.html`, `nexus.css`. Long-form docs = this directory + `integrations/*.md`.
 
 ---
 
@@ -10,19 +10,17 @@ Markdown reference for developers and agents. These files ship with the repo (an
 
 ```
 Nexus/
-├── README.md              Project overview, folder map, script order
-├── DOCUMENTATION.md       This file — where to read next
-├── AGENT-GUIDE.md         Architecture, schemas, roadmap, decisions
-├── journal.md             Session history
-│
-└── integrations/          Hosting + per-API guides
-    ├── README.md          Integration map, env vars, phase checklist
-    ├── hosting-vercel.md
-    ├── api-tradingview.md
-    ├── api-finnhub.md
-    ├── api-fmp.md
-    ├── api-perplexity.md
-    └── api-sec-edgar.md
+├── README.md              Quick overview + core rule
+├── DOCUMENTATION.md       This file — navigation
+├── AGENT-GUIDE.md         Architecture, schemas, decisions, script order
+├── deployment.md          Vercel go-live + live prices + handover
+├── journal.md             Compressed session snapshot
+├── cache/                 Node fundamentals cache (cache/README.md)
+├── scripts/               fundamentals-cache.mjs
+├── integrations/          hosting-vercel.md, api-*.md, README.md
+├── data/                  stocks.js, sectors.js, themes.js
+├── views/                 view-*.js
+└── app/                   state, nav, live-prices, app.js
 ```
 
 ---
@@ -31,19 +29,18 @@ Nexus/
 
 | I want to… | Read |
 |------------|------|
-| Understand the whole project | `AGENT-GUIDE.md` |
-| See what was built in past sessions | `journal.md` |
-| Hosting and external services overview | `integrations/README.md` |
-| Set up Vercel | `integrations/hosting-vercel.md` |
-| Wire live prices (Finnhub; optional key) | `app/finnhub-config.js`, `app/live-prices.js`, `integrations/api-finnhub.md` |
-| Add historical chart data (Phase 2) | `integrations/api-fmp.md` |
-| Build the research panel (Phase 3) | `integrations/api-perplexity.md` |
-| Add insider trade alerts (Phase 3) | `integrations/api-sec-edgar.md` |
-| Charts and news widgets today | `integrations/api-tradingview.md` |
-| WHEEL scatter + cap-weight index % | `views/view-wheel.js`, `app/utils.js` (`sectorMcapWeights`), summary bar in `app/app.js` |
+| Quick overview | `README.md` |
+| Whole project / schemas / render flow | `AGENT-GUIDE.md` |
+| Past sessions | `journal.md` |
+| Hosting + APIs + phases | `integrations/README.md` |
+| Deploy to Vercel (v1 go-live) | `deployment.md` |
+| Vercel quick pointer | `integrations/hosting-vercel.md` |
+| Node fundamentals cache | `cache/README.md` |
+| Finnhub live prices + dashboard KPI | `integrations/api-finnhub.md`, `app/finnhub-key.js` (local), `app/live-prices.js` |
+| Dashboard UI | `views/view-dashboard.js`, AGENT-GUIDE § Dashboard |
+| Dashboard CSS | `nexus.css` (`.dash-*` ~L431+) |
+| FMP / Perplexity / SEC (planned) | `integrations/api-fmp.md`, `api-perplexity.md`, `api-sec-edgar.md` |
+| TradingView charts/news | `integrations/api-tradingview.md` |
+| WHEEL + index weights | `views/view-wheel.js`, `app/utils.js` (`sectorMcapWeights`) |
 
----
-
-## Per-folder READMEs (optional)
-
-If present, `data/README.md`, `views/README.md`, and `app/README.md` describe that layer only so you can stay inside one folder while editing.
+Optional layer READMEs (`data/`, `views/`, `app/`) if present — edit one folder without reading the full guide.

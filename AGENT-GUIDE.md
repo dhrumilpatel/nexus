@@ -1,60 +1,58 @@
 # NEXUS — Agent Developer Guide
-**Version:** v8 Architecture (Modular Split)
-**Last Updated:** May 2026  
-**Status:** Modular v8 app in repo; optional Finnhub live quotes; sectors include **Nuclear** and expanded **Commodity**; further enhancements TBD.
+**Version:** v8 (Modular) · **Updated:** May 2026  
+**Status:** Finnhub live quotes + dashboard analyst KPI; **Nuclear** + **Commodity** sectors.
 
 ---
 
 ## What Is NEXUS
 
-Personal stock intelligence dashboard for an active investor/trader. Tracks **AI, Space, Quantum, Photonic, Semiconductor, Nuclear,** and **Commodity** sectors via supply chain pyramid (or flat) visualisations. Built for a single user, deployed free on Vercel.
+Personal stock dashboard: **AI, Space, Quantum, Photonics, Semiconductors, Nuclear, Commodity** pyramids (or flat commodity). Vercel, single user.
 
-**Core concept:** Every sector is a pyramid from end applications (top) to raw materials (bottom). **Sankey-style** band widths reflect layer aggregate market cap (sqrt mapping, ~54–96% row width, centered). SVG connectors taper between adjacent layers. Stock tiles use a **fixed width** (`--py-tile-w` on `.sankey-wrap`) so cards stay uniform; narrow bands scroll horizontally. Themes (e.g. NVIDIA Ecosystem) use the same pyramid engine with different config data.
+**Core concept:** Pyramids = applications (top) → raw materials (bottom). Sankey band widths = sqrt(layer MCap), ~54–96% row width. Fixed tiles (`--py-tile-w`). Themes reuse the same engine.
 
-**Critical principle:** The render engine is generic and data-agnostic. It reads whatever pyramid config is active. Adding a new theme or sector requires zero changes to render logic.
+**Critical principle:** Render engine is data-agnostic. New sector/theme = data only, zero render changes.
 
 ---
 
-## Architecture: Three-Layer Modular System
-
-Changes in one layer never require changes in another.
+## Architecture
 
 ```
-LAYER 1 — DATA          Edit tickers, sectors, themes
-LAYER 2 — VIEWS         Edit one visual without touching others
-LAYER 3 — SHELL         HTML skeleton + CSS + app coordination (rarely changes)
+LAYER 1 — DATA     data/stocks.js, sectors.js, themes.js
+LAYER 2 — VIEWS    views/view-*.js
+LAYER 3 — SHELL    index.html, nexus.css, app/*.js
 ```
 
-### Complete File Map
+### File map (paths only)
 
-```
-Nexus/
-│
-├── index.html              HTML skeleton — strict script order
-├── nexus.css               All styles — no logic (includes `.sankey-wrap.sec-AI` tile tweaks)
-│
-├── data/
-│   ├── stocks.js           S{} stock registry — one entry per ticker
-│   ├── sectors.js          PYRAMIDS{} — pyramid + flat commodity + Nuclear sector
-│   └── themes.js           THEMES_DATA{}
-│
-├── views/
-│   ├── view-pyramid.js     Sankey pyramid; wrapper class `sankey-wrap sec-<CUR|CUR_THEME>`
-│   ├── view-wheel.js       Bubble scatter (WHEEL tab)
-│   ├── view-screener.js    Sortable screener (`data-nexus-tk` for live price patch)
-│   ├── view-news.js        Intelligence + TradingView widgets
-│   └── view-flat.js        Commodity flat grid (`data-nexus-tk` on tiles)
-│
-└── app/
-    ├── utils.js            fmtB, pct, getTVSym, getFinnhubSymbol, …
-    ├── state.js            State, SEC_COLORS / SEC_LABELS, getCurrentP(), getActiveStocks()
-    ├── finnhub-config.js   NEXUS_FINNHUB_KEY, NEXUS_FINNHUB_POLL_MS, NEXUS_FINNHUB_USE_WS
-    ├── live-prices.js      Finnhub REST sweep + optional WS; DOM price updates
-    ├── nav.js              Navigation, pills, sector/theme switching
-    ├── watchlist.js        Left panel watchlist
-    ├── rightpanel.js       Right panel + chart/data/news sub-tabs
-    └── app.js              init, renderCenter, modal, NexusLivePrices.start()
-```
+| Path | Role |
+|------|------|
+| `index.html` | Skeleton; strict script order |
+| `nexus.css` | All styles |
+| `data/stocks.js` | `S{}` registry |
+| `data/sectors.js` | `PYRAMIDS{}` |
+| `data/themes.js` | `THEMES_DATA{}` |
+| `views/view-dashboard.js` | KPI, tier donuts, movers |
+| `views/view-pyramid.js` | Sankey pyramid (`sankey-wrap sec-<key>`) |
+| `views/view-sankey-flow.js` | Sankey flow tab |
+| `views/view-wheel.js` | WHEEL scatter |
+| `views/view-screener.js` | Screener (`data-nexus-tk`) |
+| `views/view-news.js` | Intelligence + TV widgets |
+| `views/view-flat.js` | Commodity flat grid |
+| `app/utils.js` | fmtB, pct, getTVSym, getFinnhubSymbol, sectorMcapWeights |
+| `app/state.js` | State, SEC_COLORS/LABELS, getCurrentP() |
+| `app/finnhub-config.js` | Poll, WS, proxy flags (no key) |
+| `app/finnhub-key.js` | `NEXUS_FINNHUB_KEY` only (gitignored) |
+| `app/finnhub-api.js` | REST routing: direct key or `/api/finnhub` |
+| `app/finnhub-config.deploy.js` | Production settings (Vercel build copy) |
+| `api/finnhub.js` | Vercel serverless proxy (`FINNHUB_API_KEY`) |
+| `app/finnhub-dashboard.js` | Analyst KPI bundle |
+| `app/live-prices.js` | REST sweep + optional WS |
+| `app/nav.js` | Pills, sector/theme |
+| `app/watchlist.js` | Left panel |
+| `app/rightpanel.js` | Right panel |
+| `app/app.js` | init, renderCenter |
+
+Full doc tree: `DOCUMENTATION.md`.
 
 ---
 
@@ -65,7 +63,6 @@ Nexus/
 **File:** `data/stocks.js` only.
 
 ```javascript
-// Add one entry to S{}:
 CLS: {
   n: 'Celestica Inc',
   px: '$82.40', ch: 1.24, mc: 12.4, ms: '$12.4B',
@@ -77,80 +74,45 @@ CLS: {
 },
 ```
 
-Then add the ticker key to the relevant layer in `data/sectors.js` or `data/themes.js`. Nothing else changes.
+Add key to a layer in `data/sectors.js` or `data/themes.js`.
 
-### Edit a Ticker's Price or Data
+### Edit ticker data
 
-**File:** `data/stocks.js` only. Find the key, edit the field. One line change.
+`data/stocks.js` only.
 
-### Add a New Sector Pyramid
+### Add sector / theme
 
-**File:** `data/sectors.js` only. Add one object to `PYRAMIDS`:
-
-```javascript
-DEFENSE: {
-  type: 'pyramid',
-  label_full: 'DEFENSE SUPPLY CHAIN',
-  layers: [
-    { id: 'prime',      name: 'Prime Contractors', theme: '...', stocks: ['LMT','RTX','NOC'] },
-    { id: 'systems',    name: 'C4ISR Systems',      theme: '...', stocks: ['LHX','LDOS'] },
-    { id: 'components', name: 'Components',         theme: '...', stocks: ['HEICO'], up: true },
-  ]
-},
-```
-
-Add the pill label and accent color in `app/state.js`: **`SEC_LABELS`** (header pill text) and **`SEC_COLORS`** (sector tint for spills/bands). `nav.js` builds pills from `PYRAMIDS` keys automatically.
-
-### Add a New Theme
-
-**File:** `data/themes.js` only. Add one object to `THEMES_DATA`:
-
-```javascript
-AI_POWER: {
-  type: 'pyramid',
-  label: 'AI POWER',
-  label_full: 'AI POWER PLAY',
-  color: '#22d3ee',
-  layers: [
-    { id: 'demand',  name: 'AI Demand Anchor', theme: 'Hyperscalers pulling 50GW+ by 2030', stocks: ['GOOGL','MSFT','META'] },
-    { id: 'nuclear', name: 'Nuclear Baseload',  theme: '24/7 carbon-free baseload',          stocks: ['CEG','VST','CCJ'] },
-    { id: 'grid',    name: 'Grid & Conversion', theme: 'Transformers, switchgear, cooling',  stocks: ['ETN','VRT','MPWR'] },
-  ]
-},
-```
-
-Nothing else changes. The render engine reads `layers` from whatever config is active.
+- **Sector:** `data/sectors.js` → new `PYRAMIDS` entry (copy shape from existing pyramid). Pill label + color: `app/state.js` `SEC_LABELS`, `SEC_COLORS`.
+- **Theme:** `data/themes.js` → new `THEMES_DATA` entry (+ `label`, `color`).
 
 ### Helpers (utils.js)
 
-- **`sectorMcapWeights(tickerKeys)`** — `{ totalMc, map }` where `map[tk]` = cap-weight % of universe Mcap (custom index weight).
-- **`maxMcapWeightTicker(tickerKeys)`** — `{ tk, w }` largest single-name weight (summary bar **Idx max**).
+- **`sectorMcapWeights(tickerKeys)`** — `{ totalMc, map }` cap-weight %.
+- **`maxMcapWeightTicker(tickerKeys)`** — `{ tk, w }` for summary **Idx max**.
 
-### Fix or Upgrade a View
+### Fix a view
 
-Edit only the relevant `views/view-*.js`:
+Edit only `views/view-*.js` (stateless: read globals, write DOM). Dashboard → `view-dashboard.js`; WHEEL → `view-wheel.js`; pyramid → `view-pyramid.js`; screener → `view-screener.js`; news → `view-news.js`.
 
-- WHEEL scatter / tooltip / legend → `views/view-wheel.js` (uses `idxW` on hover; legend **AXES** block)
-- Pyramid band header overlapping → `views/view-pyramid.js`
-- Add YTD column to screener → `views/view-screener.js`
-- Intelligence tab changes → `views/view-news.js`
+### Styling
 
-Each view is stateless — reads global state, writes to target element, no side effects.
+`nexus.css` only. Prefixes: `.band-*`, `.tile-*`, `.sankey-wrap`, `.wheel-*`, `.rp-*`, `.wl-*`, `.sb-*`, `.nm-*`, `.dash-*` (~L431+).
 
-### Change Styling
+---
 
-**File:** `nexus.css` only.
+## Dashboard (view-dashboard.js)
 
-Class naming convention:
-- `.band-*` — pyramid band header area
-- `.tile-*` — individual stock tile (pyramid); commodity grid uses `.flat-tile` but shares `.tile-px` / `.tile-ch`
-- `.tile-mets` — 2×2 metric grid at tile bottom
-- `.sankey-wrap.sec-AI` — AI-only wider pyramid tiles + horizontal band scroll (does not change global `.tile` rules for other tabs)
-- `.wheel-*` — wheel scatter view
-- `.rp-*` — right panel
-- `.wl-*` — watchlist left panel
-- `.sb-*` — summary bar
-- `.nm-*` — nav mode toggle (SECTORS / THEMES)
+Default tab (`CTAB === 'dashboard'`).
+
+| Row | Content |
+|-----|---------|
+| KPI | Mcap · Sentiment (Finnhub analyst) · Top mover/loser |
+| Middle | Mcap tiers · Revenue tiers · Layer perf (TODAY/YTD) |
+| Bottom | Top 5 gainers / bottom 5 losers |
+
+**Sentiment:** `finnhub-dashboard.js` → `/stock/recommendation`; hidden if no data. **Live prices:** `live-prices.js` patches `data-nexus-tk`; one re-render per sweep. **Layer toggle:** `sessionStorage` `nexus_dash_layer`. Finnhub details: `integrations/api-finnhub.md`.
+
+**Read for dashboard work:** `view-dashboard.js` + `finnhub-dashboard.js`.
 
 ---
 
@@ -160,26 +122,12 @@ Class naming convention:
 
 ```javascript
 TICKER: {
-  n:   'Company Full Name',     // string
-  px:  '$000.00',               // display price string (with $ and commas)
-  ch:  0.00,                    // today % change float (2.84 = +2.84%)
-  mc:  000,                     // market cap in $B float
-  ms:  '$000B',                 // market cap display string
-  pe:  00.0,                    // P/E ratio float (null if loss/N/A)
-  eps: 0.00,                    // EPS dollars float (negative = loss)
-  be:  0.00,                    // beta float
-  vl:  '00M',                   // volume display string
-  av:  '00M',                   // avg volume display string
-  hi:  '$000',                  // 52W high display string
-  lo:  '$000',                  // 52W low display string
-  op:  '$000',                  // open price display string
-  rt:  'Strong Buy',            // analyst rating: Strong Buy | Buy | Hold | Sell
-  rs:  [sb, b, h, s, ss],      // rating count array [5 ints]
-  an:  00,                      // total analyst count int
-  tags: ['TAG1','TAG2'],        // uppercase tag strings array
-  ytd: 00,                      // YTD % return float (85 = +85%, -42 = -42%)
-  rev: 00,                      // Annual revenue $B float (null for ETFs)
-  net: 00,                      // Net income $B float (negative = loss, null for ETFs)
+  n:   'Company Full Name',
+  px:  '$000.00', ch: 0.00, mc: 000, ms: '$000B',
+  pe:  00.0, eps: 0.00, be: 0.00,
+  vl: '00M', av: '00M', hi: '$000', lo: '$000', op: '$000',
+  rt: 'Strong Buy', rs: [sb,b,h,s,ss], an: 00,
+  tags: ['TAG1'], ytd: 00, rev: 00, net: 00
 }
 ```
 
@@ -187,239 +135,95 @@ TICKER: {
 
 ```javascript
 KEY: {
-  type: 'pyramid',              // 'pyramid' | 'flat'
-  label_full: 'DISPLAY NAME',   // shown in summary bar
-  layers: [
-    {
-      id:     'layer-id',       // unique slug, used for WL_LAYERS state tracking
-      name:   'Layer Name',     // band header title
-      theme:  'Narrative · Key · Context',  // band header subtitle (wraps, visible)
-      stocks: ['TK1', 'TK2'],   // ticker keys — must exist in stocks.js
-      up:     true,             // optional — marks upstream (dashed border)
-    },
-    // ... top to bottom (applications at top, raw materials at bottom)
-  ]
-}
-```
-
-Flat type (commodity grids):
-```javascript
-KEY: {
-  type: 'flat',
+  type: 'pyramid',
   label_full: 'DISPLAY NAME',
-  categories: [
-    { id: 'cat-id', name: 'CATEGORY', desc: 'Description text', stocks: ['TK1','TK2'] }
+  layers: [
+    { id: 'layer-id', name: 'Layer', theme: 'Narrative', stocks: ['TK1'], up: true },
   ]
 }
 ```
 
-### Theme Config (themes.js)
+Flat: `type: 'flat'`, `categories: [{ id, name, desc, stocks }]`.
 
-Same as pyramid, plus:
-```javascript
-KEY: {
-  ...same as pyramid...,
-  label: 'SHORT LABEL',         // pill button label (5 chars max works best)
-  color: '#f59e0b',             // hex accent color — overrides blue for this theme
-}
-```
+### Theme (themes.js)
+
+Pyramid fields + `label` (pill), `color` (hex accent).
 
 ---
 
-## State Variables (app/state.js)
+## State (app/state.js)
 
 ```javascript
-CUR          // active sector key:  'AI' | 'SPACE' | 'QUANTUM' | 'PHOTONIC' | 'SEMICONDUCTOR' | 'NUCLEAR' | 'COMMODITY'
-CUR_THEME    // active theme key:   'NVIDIA' | etc.
-NAV_MODE     // navigation mode:    'sectors' | 'themes'
-CTAB         // center tab:         'pyramid' | 'wheel' | 'fundamentals' | 'news'
-RPTAB        // right panel tab:    'chart' | 'data' | 'news'
-SEL_STOCK    // selected ticker key (string) or null
-SEL_LAYER    // selected layer id (string) or null
-SORT_COL     // screener sort:      'mc' | 'ch' | 'ytd' | 'pe' | 'tk'
-SORT_DIR     // sort direction:     'asc' | 'desc'
-WL_OPEN      // watchlist visible:  bool
-WL_LAYERS    // {layerId: bool}     watchlist section collapse state
-NEWS_SRC     // news source:        'tv' | 'finnhub' | 'sec'
+CUR, CUR_THEME, NAV_MODE, CTAB, SANKEY_WEIGHT, RPTAB,
+SEL_STOCK, SEL_LAYER, SORT_COL, SORT_DIR, WL_OPEN, WL_LAYERS, NEWS_SRC
 ```
 
-Key helpers (state.js):
-```javascript
-getCurrentP()        // PYRAMIDS[CUR] or THEMES_DATA[CUR_THEME] based on NAV_MODE
-getActiveColor()     // hex accent color for current active key
-getActiveStocks()    // all ticker keys in current pyramid/theme (deduped)
-```
+Helpers: `getCurrentP()`, `getActiveColor()`, `getActiveStocks()`.
 
 ---
 
 ## Render Flow
 
-```
-User interaction (click, select, sort)
-    ↓
-nav.js: setSector() / setTheme() / setNavMode()
-    ↓ mutates state variables
-app.js: renderCenter()  ─────────────────────────────────────┐
-    │                                                         │
-    ├─ getCurrentP().type === 'flat' → view-flat.js           │
-    ├─ CTAB === 'pyramid'            → view-pyramid.js        │
-    ├─ CTAB === 'wheel'              → view-wheel.js          │
-    ├─ CTAB === 'fundamentals'       → view-screener.js       │
-    └─ CTAB === 'news'              → view-news.js            │
-                                                              │
-app.js: renderWatchlist()   → watchlist.js                    │
-app.js: renderRightPanel()  → rightpanel.js  ←────────────────┘
-```
+1. `nav.js` mutates state (`setSector`, `setTheme`, …)
+2. `app.js` `renderCenter()`:
+   - `dashboard` → view-dashboard.js
+   - `sankey` → view-sankey-flow.js
+   - `flat` type → view-flat.js
+   - `pyramid` → view-pyramid.js
+   - `wheel` → view-wheel.js
+   - `fundamentals` → view-screener.js
+   - `news` → view-news.js
+3. `renderWatchlist()` → watchlist.js; `renderRightPanel()` → rightpanel.js
 
-View functions are pure: `render(el, pyramid, color, state) → void`. They write into `el`, never modify state.
+Views are pure: `render(el, pyramid, color, state) → void`.
 
 ---
 
 ## Design System — Midnight Pro (LOCKED)
 
-Do not change until major version.
+Tokens in `nexus.css` `:root`:
 
-```css
---bg:  #0c0e18   /* page background */
---s1:  #111421   /* panel / header background */
---s2:  #161b2e   /* card / tile background */
---s3:  #1c223a   /* input / hover background */
---s4:  #222a48   /* active / selected */
---acc: #3d9aff   /* primary blue accent */
---up:  #00c97a   /* green / positive */
---dn:  #ff4757   /* red / negative */
---warn:#f5a623   /* amber / caution */
-```
+| Token | Role |
+|-------|------|
+| `--bg` `#0c0e18` | Page |
+| `--s1`–`--s4` | Panel → active surfaces |
+| `--acc` | Primary blue |
+| `--up` / `--dn` / `--warn` | Green / red / amber |
 
-Fonts: `Barlow Condensed` (labels, headers, tickers), `IBM Plex Mono` (numbers, data), `Barlow` (prose)
-
-Sector accent colors — used for `.spill.on`, band borders, selected tile borders:
-```
-AI:            #4d9fff
-SPACE:         #a78bfa
-QUANTUM:       #34d399
-PHOTONIC:      #fb923c
-SEMICONDUCTOR: #fbbf24
-NUCLEAR:       #ef4444
-COMMODITY:     #22d3ee
-NVIDIA theme:  #f59e0b
-```
+Fonts: Barlow Condensed (labels), IBM Plex Mono (numbers), Barlow (prose). Sector accents: `SEC_COLORS` in `state.js` (AI `#4d9fff`, SPACE `#a78bfa`, …).
 
 ---
 
-## Current Universe (May 2026)
+## Universe
 
-### AI (7 layers, 32 tickers)
-Apps: PLTR, CRM, NOW, CRWV, DELL
-LLMs: GOOGL, META, MSFT, AMZN
-Compute: NVDA, AMD, AVGO, TSM, MU, ARM
-Network: ANET, MRVL, CIEN, CRDO
-Power: VRT, ETN, CEG, VST, MPWR
-Storage: STX, WDC, SNDK, EQIX, DLR
-Upstream: ASML, AMAT, LRCX, KLAC, ENTG, AMKR
-
-### SPACE (5 layers, 12 tickers)
-Apps: LHX, LDOS, BAH, IRDM | Satellites: ASTS, PL | Launch: RKLB
-Prime: LMT, BA, RTX, NOC | Materials: MP
-
-### QUANTUM (4 layers, 7 tickers)
-Cloud: IBM, MSFT, AMZN | QPU: IONQ, RGTI, QBTS, QUBT
-Security: ARQQ | Instruments: OXIG
-
-### PHOTONIC (4 layers, 8 tickers)
-Systems: COHR, VIAV, LITE, ALAB | PICs: COHR, AAOI
-Lasers: LITE, VECO | Equipment: ACLS, ONTO
-
-### SEMICONDUCTOR (6 layers, 22 tickers)
-Design: NVDA, AMD, QCOM, MRVL, ARM, MCHP | EDA: SNPS, CDNS
-IDM: INTC, TXN, STM, ON | Foundry: TSM, GFS, UMC, TSEM
-Equipment: ASML, AMAT, LRCX, KLAC, ONTO, ACLS | Packaging: AMKR, ENTG, MKSI, CMC
-
-### NUCLEAR (4 layers)
-Utilities: CEG, VST | Infrastructure: ETN, VRT, MPWR | Fuel cycle: CCJ, URA | Upstream inputs: COPX, CPER, MP2
-
-### COMMODITY (flat — multiple categories)
-Energy: CCJ, URA, USO | Precious: GLD, SLV, PPLT | Industrial metals: COPX, CPER, MP2 | Battery / lithium: ALB, LTHM, LAC | Agriculture: DBA | Broad basket: DBC
-
-### THEMES
-NVIDIA Ecosystem (7 layers): CRWV, DELL, META, GOOGL, MSFT, AMZN / NVDA / AMD, AVGO, ARM / MU, SNDK, WDC, STX / ANET, COHR, LITE, CIEN, CRDO / VRT, ETN, MPWR, CEG / ASML, LRCX, KLAC, AMAT, TSM, AMKR
+Ticker lists and layer membership: **`data/sectors.js`**, **`data/themes.js`**, **`data/stocks.js`** — not duplicated here.
 
 ---
 
-## Phase Roadmap
+## Phases & APIs
 
-### Phase 1A — Modular Split (DONE — baseline in repo)
-Modular `data/` / `views/` / `app/` + `index.html` / `nexus.css` structure is the working codebase.
+| Phase | Status |
+|-------|--------|
+| 1A–1B | Done — modular layout, WHEEL, Sankey, dashboard, Nuclear/Commodity |
+| 2 | Partial — Finnhub quotes + dashboard KPI; Node `cache/` optional; FMP planned |
+| 3 | Planned — Perplexity, SEC, compare view |
 
-### Phase 1B — v8 Features (file by file, isolated)
-- `data/stocks.js` — add ytd/rev/net to all stocks
-- `data/sectors.js` — remove multiLayer from all configs
-- `data/themes.js` — NVIDIA Ecosystem config (already drafted)
-- `views/view-pyramid.js` — tile-mets 2x2 grid, band header visible fix
-- `views/view-wheel.js` — NEW: bubble scatter (YTD x PE x MCap x today%)
-- `views/view-screener.js` — add YTD sortable column
-- `app/nav.js` — SECTORS / THEMES toggle in header
-- `app/rightpanel.js` — Revenue, Net Income, YTD row in DATA tab
-- `nexus.css` — WHEEL styles, tile-mets, band header overflow fix
-
-### Phase 2 — Live Data
-- **Done (partial):** `app/finnhub-config.js` + `app/live-prices.js` — REST quote sweep + optional WebSocket; DOM updates for tiles/screener; `getFinnhubSymbol()` in `utils.js`
-- **Planned:** `app/api-fmp.js` (or similar) — Financial Modeling Prep historical data
-- **Optional:** Vercel serverless proxy to hide Finnhub key; richer Finnhub endpoints (fundamentals, sentiment) in UI
-- Update: `data/stocks.js` — optional `finnhubId` per ticker if symbol mapping outgrows `getFinnhubSymbol()`
-
-### Phase 3 — Intelligence Layer
-- New: `app/api-perplexity.js` — Sonar Pro research integration
-- New: `app/api-sec.js` — EDGAR Form 4 / 8-K
-- New: `views/view-compare.js` — side-by-side stock analysis tab
-- Files affected: 3 new files. Existing files untouched.
+Integration map, env vars, proxy pattern: **`integrations/README.md`**.
 
 ---
 
-## API Integration Status
+## Token window
 
-| API | Status | Purpose | Target File |
-|-----|--------|---------|-------------|
-| TradingView Widgets | Live | Charts + news | rightpanel.js, view-news.js |
-| Finnhub | Partial | Live tile prices (REST + optional WS) | `live-prices.js`, `finnhub-config.js`; full API surface still Phase 2 |
-| Financial Modeling Prep | Phase 2 | Historical PE + revenue | api-fmp.js |
-| Perplexity Sonar Pro | Phase 3 | AI research Q&A | api-perplexity.js |
-| SEC EDGAR | Phase 3 | Form 4, 8-K filings | api-sec.js |
+| Task | Modular read |
+|------|----------------|
+| WHEEL fix | ~3K `view-wheel.js` |
+| New ticker | ~2K `stocks.js` |
+| New theme | ~2K `themes.js` |
+| Right panel | ~4K `rightpanel.js` |
 
----
+**Session protocol:** (1) Read this guide (~4K). (2) State task. (3) Open 1–2 target files only. (4) Change + verify. (5) After Node cache edits → `cache/README.md` smoke tests from inner `Nexus/`.
 
-## Token Window — Honest Assessment
-
-### The Problem (monolithic approach)
-Reading nexus-v7.html = 94KB = ~23K tokens consumed before any work starts.
-As the file grows each version, this cost compounds. By v12, reading the file alone
-would consume 35-40K tokens, leaving little room for actual generation.
-
-### Solution (modular approach)
-
-| Task | Monolith cost | Modular cost | Improvement |
-|------|--------------|--------------|-------------|
-| Fix WHEEL view bug | 23K tokens | 3K (view-wheel.js) | 7.7x |
-| Add new ticker | 23K tokens | 2K (stocks.js) | 11.5x |
-| Add new theme | 23K tokens | 2K (themes.js) | 11.5x |
-| Upgrade right panel | 23K tokens | 4K (rightpanel.js) | 5.75x |
-| Full feature review | 23K tokens | 8-10K (select files) | 2.5x |
-
-### Session Start Protocol (every future session)
-1. Read AGENT-GUIDE.md — architecture context (~4K tokens)
-2. State the task explicitly
-3. Read only the 1-2 files relevant to that task
-4. Make the targeted change
-5. Verify that file in isolation before shipping
-
-Never read the full codebase unless doing a cross-cutting architectural review.
-
-### Context Budget Per Session (estimated, 200K window)
-- AGENT-GUIDE.md: ~4K
-- Conversation history / compacted summary: ~3-5K
-- Target file(s): 2-5K
-- Generation: 5-10K
-- Total used: ~15-25K (well within limits, vs 40-60K for monolith sessions)
+Budget ~15–25K/session vs ~40–60K monolith.
 
 ---
 
@@ -427,36 +231,45 @@ Never read the full codebase unless doing a cross-cutting architectural review.
 
 | Decision | Choice | Reason |
 |----------|--------|--------|
-| Multi-layer system | Removed | No UX payoff without dedicated relationship view. Phase 2. |
-| Heatmap tab | Replaced by WHEEL | 4D scatter (YTD/PE/MCap/today%) more actionable than 1D color |
-| Theme: Midnight Pro | Locked | No changes until major version. |
-| Sankey band width | sqrt(layer MCap) → 54–96% | Visual weight of each supply-chain tier |
-| Pyramid tile width | `--py-tile-w` (~114px) | Uniform stock cards; `band-tiles` scrolls when row is narrower than content |
-| Screener default sort | Market cap descending | Largest/most relevant first |
-| File generation | Modular, max 120 lines/file | Avoids truncation, enables targeted edits |
-| Tile prices | Static + optional Finnhub | Default: `stocks.js`. With key: `live-prices.js` overwrites px/ch via DOM patch. |
+| Multi-layer system | Removed | No UX without relationship view |
+| Heatmap | → WHEEL | 4D scatter more actionable |
+| Midnight Pro | Locked | Until major version |
+| Sankey width | sqrt(MCap) 54–96% | Tier visual weight |
+| Tile width | `--py-tile-w` | Uniform cards + band scroll |
+| Screener sort | Mcap desc | Largest first |
+| Modular files | ~120 lines max | Targeted agent edits |
+| Dashboard sentiment | Finnhub analyst only | No footer if empty |
+| Tile prices | Static + optional Finnhub | DOM patch, not full redraw |
+| Fundamentals cache | Node `cache/*.json` | UI unchanged |
 
 ---
 
 ## Vercel Deployment Notes
 
-Free tier, no build step required. Pure HTML/CSS/JS, zero dependencies except:
-- Google Fonts (CDN, loaded in index.html)
-- TradingView widgets (CDN scripts, loaded on demand in rightpanel.js and view-news.js)
+**Go-live:** [`deployment.md`](deployment.md) — env vars, smoke tests, handover checklist.
 
-All JS files loaded as `<script src="...">` in index.html. Order matters:
+Free tier, no build. CDN: Fonts, TradingView, ECharts 5. Production: `vercel.json` copies deploy config + empty `finnhub-key.js`. Repo: [github.com/dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus).
+
+**Canonical script order** (must match [index.html](index.html)):
+
 ```html
-<!-- Data first -->
+<!-- Data -->
 <script src="data/stocks.js"></script>
 <script src="data/sectors.js"></script>
 <script src="data/themes.js"></script>
-<!-- Utilities + optional live quotes -->
+<!-- Utils + state + Finnhub -->
 <script src="app/utils.js"></script>
 <script src="app/state.js"></script>
 <script src="app/finnhub-config.js"></script>
+<script src="app/finnhub-key.js"></script>
+<script src="app/finnhub-api.js"></script>
+<script src="app/finnhub-dashboard.js"></script>
 <script src="app/live-prices.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
 <!-- Views -->
+<script src="views/view-dashboard.js"></script>
 <script src="views/view-pyramid.js"></script>
+<script src="views/view-sankey-flow.js"></script>
 <script src="views/view-wheel.js"></script>
 <script src="views/view-screener.js"></script>
 <script src="views/view-news.js"></script>

@@ -15,11 +15,12 @@ const PYRAMIDS={
   ]},
 
   SPACE:{type:'pyramid',label_full:'SPACE SUPPLY CHAIN',layers:[
-    {id:'apps',name:'Apps & Intelligence',theme:'Defense ISR · Navigation · Commercial remote sensing',stocks:['LHX','LDOS','BAH','IRDM'],w:68},
-    {id:'satellites',name:'Satellites & Connectivity',theme:'LEO constellation race · Direct-to-cell · Spectrum rights',stocks:['ASTS','PL'],w:80},
-    {id:'launch',name:'Launch Vehicles',theme:'Cost per kg reduction · Reusability · Launch cadence',stocks:['RKLB'],w:88},
-    {id:'prime',name:'Prime Contractors',theme:'Defense budgets · Long-term programs · Government risk',stocks:['LMT','BA','RTX','NOC'],w:95},
-    {id:'rawmat',name:'Critical Materials',theme:'Rare earth dependency · Supply chain fragility · China risk',stocks:['MP'],w:100,up:true},
+    {id:'launch',name:'Launch',theme:'Reusable launch · cadence · cost to orbit · rideshare demand',stocks:['RKLB','FLY'],w:70},
+    {id:'satcom',name:'Satellite Communications',theme:'Constellations · spectrum · direct-to-device · backhaul',stocks:['VSAT','GSAT','SATS','IRDM','ASTS','TSAT'],w:76},
+    {id:'eartheo',name:'Earth Observation',theme:'Tasking · analytics · defense & commercial sensing',stocks:['SATL','PL','SPIR','BKSY'],w:82},
+    {id:'explore',name:'Space Exploration',theme:'Cislunar logistics · landers · science & robotics',stocks:['LUNR'],w:88},
+    {id:'infra',name:'Infrastructure & Manufacturing',theme:'Structures · modules · in-space services & tooling',stocks:['MDA','RDW','SIDU','VOYG'],w:94},
+    {id:'components',name:'Components & Support',theme:'Ground networks · specialty avionics · satellite ground segment',stocks:['GILT','CW'],w:100,up:true},
   ]},
 
   QUANTUM:{type:'pyramid',label_full:'QUANTUM SUPPLY CHAIN',layers:[
@@ -29,20 +30,22 @@ const PYRAMIDS={
     {id:'instruments',name:'Control & Instrumentation',theme:'Cryogenics monopoly · Ultra-pure materials · Single source',stocks:['OXIG'],w:100,up:true},
   ]},
 
-  PHOTONIC:{type:'pyramid',label_full:'PHOTONIC SUPPLY CHAIN',layers:[
-    {id:'apps',name:'Systems & Applications',theme:'Datacenter optical interconnects · 800G/1.6T transition',stocks:['COHR','VIAV','LITE','ALAB'],w:68},
-    {id:'pics',name:'Photonic ICs & Modules',theme:'Silicon photonics · InP integration · PIC moats forming',stocks:['COHR','AAOI'],w:82},
-    {id:'lasers',name:'Light Sources & VCSELs',theme:'Laser supply · VCSEL competition · LiDAR adjacency',stocks:['LITE','VECO'],w:91},
-    {id:'equip',name:'Fabrication Equipment',theme:'MOCVD · Specialized lithography · Inspection tooling',stocks:['ACLS','ONTO'],w:100,up:true},
+  PHOTONIC:{type:'pyramid',label_full:'PHOTONICS · POWERING THE FUTURE WITH LIGHT',layers:[
+    {id:'materials',name:'Photonic materials & substrates',theme:'Glass & ceramics · nonlinear optics · compound substrates · high-purity chemistry',stocks:['GLW','LWLG','AXTI','ALB'],w:68},
+    {id:'packaging',name:'Packaging & assembly',theme:'Advanced optical modules · OSAT · foundry for photonic & RF SOI',stocks:['FN','AMKR','TSM','GFS'],w:74},
+    {id:'lasers',name:'Lasers & light sources',theme:'Datacom lasers · industrial & scientific · fiber amplifiers · diode & custom solutions',stocks:['LITE','COHR','IPGP','LPTH','LASR','LASE'],w:80},
+    {id:'optical',name:'Optical components & transceivers',theme:'Subsystems · fiber connectivity · pluggable optics',stocks:['AAOI','OPTX'],w:86},
+    {id:'pics',name:'Photonic integrated circuits',theme:'Silicon photonics · PIC platforms · optical I/O & custom networking silicon',stocks:['MTSI','POET','AVGO','MRVL','CRDO'],w:92},
+    {id:'test',name:'Test, sensing & broader photonics',theme:'Optical transport · DC switching · instrumentation · wafer-level photonic test',stocks:['CIEN','CSCO','MKSI','VIAV','AEHR'],w:100,up:true},
   ]},
 
-  SEMICONDUCTOR:{type:'pyramid',label_full:'SEMICONDUCTOR SUPPLY CHAIN',layers:[
-    {id:'design',name:'Chip Design (Fabless)',theme:'IP moats · Architecture wars · CUDA vs RDNA vs custom ASIC',stocks:['NVDA','AMD','QCOM','MRVL','ARM','MCHP'],w:68},
-    {id:'eda',name:'EDA & Design Tools',theme:'Design tool duopoly · Licensing lock-in · 95%+ market share',stocks:['SNPS','CDNS'],w:78},
-    {id:'idm',name:'Integrated Device Mfg',theme:'Design + fab model · Analog dominance · Automotive cycles',stocks:['INTC','TXN','STM','ON'],w:86},
-    {id:'foundry',name:'Foundry & Manufacturing',theme:'TSMC monopoly at advanced nodes · Geopolitical risk premium',stocks:['TSM','GFS','UMC','TSEM'],w:92},
-    {id:'equipment',name:'Semiconductor Equipment',theme:'Export control leverage · Process monopolies · WFE cycles',stocks:['ASML','AMAT','LRCX','KLAC','ONTO','ACLS'],w:96},
-    {id:'packaging',name:'Packaging & Materials',theme:'Chiplet integration · OSAT · Materials purity at angstrom scale',stocks:['AMKR','ENTG','MKSI','CMC'],w:100,up:true},
+  SEMICONDUCTOR:{type:'pyramid',label_full:'CRITICAL AI BOTTLENECK · SEMICONDUCTORS',layers:[
+    {id:'compute',name:'Compute & CPU IP',theme:'GPUs · AI accelerators · x86 turnaround · ARM licensing',stocks:['AMD','INTC','ARM'],w:68},
+    {id:'connectivity',name:'Data infrastructure & mixed-signal',theme:'Cloud networking · RF · analog & optical links',stocks:['MRVL','MXL','MTSI'],w:74},
+    {id:'power_edge',name:'Power, sensing & edge logic',theme:'PMIC density · GaN/SiC · industrial & edge FPGAs',stocks:['MPWR','ON','NVTS','LSCC'],w:80},
+    {id:'test_pack',name:'Test & assembly',theme:'HBM & accelerator test · OSAT · wire bond & packaging tools',stocks:['TER','FORM','AMKR','KLIC'],w:86},
+    {id:'fab_sys',name:'Fab metrology & subsystems',theme:'Process control · capital equipment · ion implant · fluid delivery',stocks:['ONTO','VECO','ACLS','ICHR'],w:92},
+    {id:'specialty',name:'Foundry & discrete / analog',theme:'Specialty capacity · discrete & broad analog',stocks:['GFS','DIOD'],w:100,up:true},
   ]},
 
   NUCLEAR:{type:'pyramid',label_full:'NUCLEAR ENERGY SUPPLY CHAIN',layers:[

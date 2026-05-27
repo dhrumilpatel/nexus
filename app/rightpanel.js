@@ -307,7 +307,8 @@ function renderRPNewsCtrl(){
     </div>
     <div class="rp-sec-t" style="margin-top:10px">DATA SOURCES</div>
     <div class="nc-card"><div class="nc-lbl">TradingView</div><div class="nc-status nc-on">✓ LIVE — Charts + News Feed</div></div>
-    <div class="nc-card"><div class="nc-lbl">Finnhub Sentiment</div><div class="nc-status nc-off">⏳ Phase 2 — API key needed</div></div>
+    <div class="nc-card"><div class="nc-lbl">Finnhub Quotes</div><div class="nc-status ${window.NexusLivePrices&&NexusLivePrices.isActive()?'nc-on':'nc-off'}">${window.NexusLivePrices&&NexusLivePrices.isActive()?'✓ LIVE — REST poll (WS local only)':'⏳ Set FINNHUB_API_KEY on Vercel or finnhub-key.js'}</div></div>
+    <div class="nc-card"><div class="nc-lbl">Finnhub Sentiment</div><div class="nc-status ${window.NexusLivePrices&&NexusLivePrices.isActive()?'nc-on':'nc-off'}">${window.NexusLivePrices&&NexusLivePrices.isActive()?'✓ Analyst recs (news sentiment: paid tier)':'⏳ Finnhub not configured'}</div></div>
     <div class="nc-card"><div class="nc-lbl">SEC EDGAR</div><div class="nc-status nc-off">⏳ Phase 3 — Form 4, 8-K</div></div>
     <div class="nc-card"><div class="nc-lbl">Perplexity Sonar Pro</div><div class="nc-status nc-off">⏳ Phase 3 — Research Q&A</div></div>
     ${st?.tags?.length?`<div class="rp-sec-t" style="margin-top:10px">TAGS</div><div class="kwd-row">${st.tags.map(t=>`<span class="kwd">${t.replace(/_/g,' ')}</span>`).join('')}</div>`:''}

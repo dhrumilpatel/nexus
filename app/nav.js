@@ -30,7 +30,7 @@ function setNavMode(mode,btn){
   setSectorCSS(key);
   buildPills();
   renderSummaryBar(); renderWatchlist(); renderCenter(); renderRightPanel();
-  if(window.NexusLivePrices) NexusLivePrices.refreshNow();
+  if(window.NexusLivePrices) NexusLivePrices.resubscribe();
 }
 
 function setTheme(key,btn){
@@ -39,7 +39,7 @@ function setTheme(key,btn){
   document.querySelectorAll('.spill').forEach(b=>b.classList.remove('on'));
   btn?.classList.add('on');
   renderSummaryBar(); renderWatchlist(); renderCenter(); renderRightPanel();
-  if(window.NexusLivePrices) NexusLivePrices.refreshNow();
+  if(window.NexusLivePrices) NexusLivePrices.resubscribe();
 }
 
 function setSector(sec,btn){
@@ -48,14 +48,16 @@ function setSector(sec,btn){
   document.querySelectorAll('.spill').forEach(b=>b.classList.remove('on'));
   btn?.classList.add('on');
   renderSummaryBar(); renderWatchlist(); renderCenter(); renderRightPanel();
-  if(window.NexusLivePrices) NexusLivePrices.refreshNow();
+  if(window.NexusLivePrices) NexusLivePrices.resubscribe();
 }
 
 function setCTab(tab,btn){
   CTAB=tab;
   document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
   btn?.classList.add('on');
+  renderSummaryBar();
   renderCenter(); renderRightPanel();
+  if(window.NexusLivePrices&&NexusLivePrices.isActive()) NexusLivePrices.refreshVisible();
 }
 
 function toggleWL(){

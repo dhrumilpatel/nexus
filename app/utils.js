@@ -54,6 +54,7 @@ function getFinnhubSymbol(tk){
   const m=tv.match(/^(NASDAQ|NYSE|AMEX):(.+)$/i);
   if(m) return m[2];
   if(/^LON:/i.test(tv)) return tv.slice(4)+'.L';
+  if(/^TSX:/i.test(tv)) return tv.slice(4)+'.TO';
   return tk;
 }
 
@@ -62,12 +63,18 @@ function getTVSym(tk){
     ASML:'NASDAQ:ASML',TSM:'NYSE:TSM',OXIG:'LON:OXIG',
     LHX:'NYSE:LHX',LDOS:'NYSE:LDOS',BAH:'NYSE:BAH',IRDM:'NASDAQ:IRDM',
     ASTS:'NASDAQ:ASTS',PL:'NYSE:PL',RKLB:'NASDAQ:RKLB',
+    FLY:'NYSE:FLY',SATL:'NASDAQ:SATL',SPIR:'NYSE:SPIR',BKSY:'NYSE:BKSY',
+    VSAT:'NASDAQ:VSAT',GSAT:'NYSE:GSAT',SATS:'NASDAQ:SATS',TSAT:'TSX:TSAT',
+    LUNR:'NASDAQ:LUNR',MDA:'TSX:MDA',RDW:'NYSE:RDW',SIDU:'NASDAQ:SIDU',
+    VOYG:'NASDAQ:VOYG',GILT:'NASDAQ:GILT',CW:'NYSE:CW',
     LMT:'NYSE:LMT',BA:'NYSE:BA',RTX:'NYSE:RTX',NOC:'NYSE:NOC',MP:'NYSE:MP',
     IBM:'NYSE:IBM',IONQ:'NYSE:IONQ',RGTI:'NASDAQ:RGTI',QBTS:'NYSE:QBTS',
     QUBT:'NASDAQ:QUBT',ARQQ:'NASDAQ:ARQQ',
     COHR:'NASDAQ:COHR',VIAV:'NASDAQ:VIAV',LITE:'NASDAQ:LITE',
     AAOI:'NASDAQ:AAOI',VECO:'NASDAQ:VECO',ACLS:'NASDAQ:ACLS',ONTO:'NYSE:ONTO',
     ALAB:'NASDAQ:ALAB',QCOM:'NASDAQ:QCOM',MCHP:'NASDAQ:MCHP',
+    TER:'NASDAQ:TER',LSCC:'NASDAQ:LSCC',FORM:'NASDAQ:FORM',MXL:'NYSE:MXL',MTSI:'NASDAQ:MTSI',KLIC:'NASDAQ:KLIC',ICHR:'NASDAQ:ICHR',DIOD:'NASDAQ:DIOD',    NVTS:'NASDAQ:NVTS',
+    GLW:'NYSE:GLW',LWLG:'NASDAQ:LWLG',AXTI:'NASDAQ:AXTI',FN:'NYSE:FN',IPGP:'NASDAQ:IPGP',LPTH:'NASDAQ:LPTH',LASR:'NASDAQ:LASR',LASE:'NASDAQ:LASE',OPTX:'NASDAQ:OPTX',POET:'NASDAQ:POET',CSCO:'NASDAQ:CSCO',AEHR:'NASDAQ:AEHR',
     SNPS:'NASDAQ:SNPS',CDNS:'NASDAQ:CDNS',TXN:'NASDAQ:TXN',
     STM:'NYSE:STM',ON:'NASDAQ:ON',GFS:'NASDAQ:GFS',UMC:'NYSE:UMC',
     TSEM:'NASDAQ:TSEM',MKSI:'NASDAQ:MKSI',CMC:'NYSE:CMC',
@@ -81,9 +88,11 @@ function getTVSym(tk){
 function layerAgg(layer){
   const stks=layer.stocks.map(tk=>S[tk]).filter(Boolean);
   const mc=stks.reduce((a,s)=>a+(s.mc||0),0);
+  const rev=stks.reduce((a,s)=>a+((typeof s.rev==='number'&&s.rev>0)?s.rev:0),0);
   const pes=stks.filter(s=>s.pe).map(s=>s.pe);
   return{
     mc,
+    rev,
     avgPE:pes.length?pes.reduce((a,v)=>a+v,0)/pes.length:null,
     avgCh:stks.reduce((a,s)=>a+s.ch,0)/(stks.length||1),
     count:stks.length

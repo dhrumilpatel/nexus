@@ -14,11 +14,11 @@ function renderWatchlist(){
       cat.stocks.forEach(tk=>{
         const st=S[tk]; if(!st) return;
         const u=st.ch>=0;
-        html+=`<div class="wl-row${SEL_STOCK===tk?' on':''}" onclick="clickTileByTk('${tk}')">
+        html+=`<div class="wl-row${SEL_STOCK===tk?' on':''}" data-nexus-tk="${tk}" onclick="clickTileByTk('${tk}')">
           <div class="wr-tk" style="color:${c}">${tk}</div>
           <div class="wr-px">${st.px}</div>
           <div class="wr-nm">${st.n.split(' ').slice(0,3).join(' ')}</div>
-          <div class="wr-ch ${u?'up':'dn'}">${st.ytd||pct(st.ch,1)}</div>
+          <div class="wr-ch ${u?'up':'dn'}">${pct(st.ch,1)}</div>
         </div>`;
       });
     });
@@ -41,7 +41,7 @@ function renderWatchlist(){
       l.stocks.forEach(tk=>{
         const st=S[tk]; if(!st) return;
         const u=st.ch>=0, isMl=p.multiLayer?.[tk];
-        html+=`<div class="wl-row${SEL_STOCK===tk?' on':''}" style="${SEL_STOCK===tk?'border-left-color:'+c:''}" onclick="clickTileByTk('${tk}')">
+        html+=`<div class="wl-row${SEL_STOCK===tk?' on':''}" data-nexus-tk="${tk}" style="${SEL_STOCK===tk?'border-left-color:'+c:''}" onclick="clickTileByTk('${tk}')">
           <div class="wr-tk" style="color:${c}">${tk}${isMl?`<span class="ml-badge">x${isMl.length+1}L</span>`:''}</div>
           <div class="wr-px">${st.px}</div>
           <div class="wr-nm">${st.n.slice(0,22)}</div>

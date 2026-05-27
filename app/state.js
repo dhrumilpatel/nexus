@@ -8,12 +8,18 @@ const SEC_COLORS={
 };
 const SEC_LABELS={
   AI:'AI',SPACE:'SPACE',QUANTUM:'QUANTUM',
-  PHOTONIC:'PHOTONIC',SEMICONDUCTOR:'SEMI',NUCLEAR:'NUCLEAR',COMMODITY:'COMM'
+  PHOTONIC:'PHOTONICS',SEMICONDUCTOR:'SEMI CONDUCTORS',NUCLEAR:'NUCLEAR',COMMODITY:'COMM'
 };
 
 // Active sector / tab / selection
 let CUR='AI';
-let CTAB='pyramid';
+let CTAB='dashboard';
+/** Sankey center tab only: link widths from Mcap ($B) or Revenue ($B). */
+let SANKEY_WEIGHT='mcap';
+try{
+  const _sw=sessionStorage.getItem('nexus_sankey_w');
+  if(_sw==='mcap'||_sw==='rev') SANKEY_WEIGHT=_sw;
+}catch(e){}
 let RPTAB='chart';
 let SEL_STOCK=null;
 let SEL_LAYER=null;

@@ -1,5 +1,5 @@
-# Local secrets (never commit)
-app/finnhub-config.js
+# Local Finnhub API key (never commit)
+app/finnhub-key.js
 
 .DS_Store
 *.swp
