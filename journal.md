@@ -15,7 +15,7 @@
 | WHEEL | YTD×P/E scatter; cap-weight Idx %; summary **Idx max** |
 | Sectors | AI, Space, Quantum, Photonic, Semi, Nuclear, Commodity |
 | Docs | Compressed dedupe + `deployment.md` (Vercel v1 handover) |
-| Deploy | [github.com/dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus); Vercel proxy; key in `finnhub-key.js` |
+| Deploy | [github.com/dhrumil-pat/nexus](https://github.com/dhrumil-pat/nexus) pushed; Vercel proxy; key in `finnhub-key.js` |
 | Next | FMP, custom domain, pyramid polish |
 
 ---

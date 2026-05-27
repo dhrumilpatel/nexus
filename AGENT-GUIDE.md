@@ -248,7 +248,7 @@ Budget ~15–25K/session vs ~40–60K monolith.
 
 **Go-live:** [`deployment.md`](deployment.md) — env vars, smoke tests, handover checklist.
 
-Free tier, no build. CDN: Fonts, TradingView, ECharts 5. Production: `vercel.json` copies deploy config + empty `finnhub-key.js`. Repo: [github.com/dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus).
+Free tier, no build. CDN: Fonts, TradingView, ECharts 5. Production: `vercel.json` copies deploy config + empty `finnhub-key.js`. Repo: [github.com/dhrumil-pat/nexus](https://github.com/dhrumil-pat/nexus).
 
 **Canonical script order** (must match [index.html](index.html)):
 
