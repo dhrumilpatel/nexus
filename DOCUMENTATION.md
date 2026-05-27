@@ -34,6 +34,7 @@ Nexus/
 | Past sessions | `journal.md` |
 | Hosting + APIs + phases | `integrations/README.md` |
 | Deploy to Vercel (v1 go-live) | `deployment.md` |
+| Branch, commit, open PR | `.cursor/skills/git-pr-workflow/SKILL.md` |
 | Vercel quick pointer | `integrations/hosting-vercel.md` |
 | Node fundamentals cache | `cache/README.md` |
 | Finnhub live prices + dashboard KPI | `integrations/api-finnhub.md`, `app/finnhub-key.js` (local), `app/live-prices.js` |
