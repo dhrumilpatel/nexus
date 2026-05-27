@@ -19,7 +19,7 @@
 
 Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
 
-**ETF mode (Phase 2-ready):** Manual registry in `data/etfs.js` (`ETF_SECTORS`). UI: top nav `ETF`, center `views/view-etf.js`, right panel `renderRPEtf()` in `app/rightpanel.js`. Phase 2 adapter: `app/etf-api.js` (`NexusEtfApi.fetchHoldings`, `normalizeEtf`, `mergeIntoEtf`) — wire a provider proxy the same way as FMP/Finnhub, then merge into the active ETF before `renderCenter()`.
+**ETF mode (Phase 2-ready):** Manual registry in `data/etfs.js` (`ETF_SECTORS`: AI, SPACE, MEMORY, PHOTONICS, SEMI, GREEN, COMM). Holdings tickers must exist in `data/stocks.js` (`S`) for live quotes + sector tags. UI: top nav `ETF`, center `views/view-etf.js`, right panel `renderRPEtf()`. Phase 2: `app/etf-api.js` (`NexusEtfApi`) — merge API payload before `renderCenter()`.
 
 ---
 
