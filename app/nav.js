@@ -3,15 +3,28 @@
 // After any nav change: fires renderSummaryBar + renderWatchlist + renderCenter + renderRightPanel.
 
 function setSectorCSS(key){
-  const c=(NAV_MODE==='themes'?THEMES_DATA[key]?.color:null)||secColor(key);
+  let c;
+  if(NAV_MODE==='etf') c=ETF_SECTORS[key]?.color||'#3d9aff';
+  else if(NAV_MODE==='themes') c=THEMES_DATA[key]?.color||'#f59e0b';
+  else c=secColor(key);
   const r=document.documentElement.style;
   r.setProperty('--sec',c);
   r.setProperty('--sec-lo',c+'18');
   r.setProperty('--sec-glo',c+'32');
 }
 
+function updateCenterTabsForMode(){
+  const cz=document.querySelector('.ctabs');
+  if(!cz) return;
+  cz.style.display=NAV_MODE==='etf'?'none':'flex';
+}
+
 function buildPills(){
-  if(NAV_MODE==='themes'){
+  if(NAV_MODE==='etf'){
+    document.getElementById('spills').innerHTML=Object.keys(ETF_SECTORS).map(k=>
+      `<button class="spill${k===CUR_ETF?' on':''}" onclick="setEtfSector('${k}',this)">${ETF_SECTORS[k].label}</button>`
+    ).join('');
+  } else if(NAV_MODE==='themes'){
     document.getElementById('spills').innerHTML=Object.keys(THEMES_DATA).map(k=>
       `<button class="spill${k===CUR_THEME?' on':''}" onclick="setTheme('${k}',this)">${THEMES_DATA[k].label}</button>`
     ).join('');
@@ -22,14 +35,47 @@ function buildPills(){
   }
 }
 
+function defaultEtfForSector(secKey){
+  const sec=ETF_SECTORS[secKey];
+  if(!sec||!sec.etfs) return null;
+  const ids=Object.keys(sec.etfs);
+  return ids[0]||null;
+}
+
+function setEtfSector(key,btn){
+  CUR_ETF=key;
+  SEL_ETF=defaultEtfForSector(key);
+  SEL_STOCK=null;
+  SEL_LAYER=null;
+  setSectorCSS(key);
+  document.querySelectorAll('.spill').forEach(b=>b.classList.remove('on'));
+  btn?.classList.add('on');
+  renderSummaryBar();
+  renderWatchlist();
+  renderCenter();
+  renderRightPanel();
+}
+
 function setNavMode(mode,btn){
-  NAV_MODE=mode; SEL_STOCK=null; SEL_LAYER=null;
+  NAV_MODE=mode;
+  SEL_STOCK=null;
+  SEL_LAYER=null;
   document.querySelectorAll('.nm-btn').forEach(b=>b.classList.remove('on'));
   btn?.classList.add('on');
-  const key=mode==='themes'?CUR_THEME:CUR;
-  setSectorCSS(key);
+  if(mode==='etf'){
+    if(!ETF_SECTORS[CUR_ETF]) CUR_ETF=Object.keys(ETF_SECTORS)[0];
+    SEL_ETF=defaultEtfForSector(CUR_ETF);
+    setSectorCSS(CUR_ETF);
+  }else{
+    const key=mode==='themes'?CUR_THEME:CUR;
+    setSectorCSS(key);
+  }
+  updateCenterTabsForMode();
   buildPills();
-  renderSummaryBar(); renderWatchlist(); renderCenter(); renderRightPanel();
+  renderSummaryBar();
+  renderWatchlist();
+  renderCenter();
+  renderRightPanel();
   if(window.NexusLivePrices) NexusLivePrices.resubscribe();
 }
 

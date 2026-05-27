@@ -130,10 +130,75 @@ function getRisk(tk){
 
 // ── Render dispatcher ──────────────────────────────────────────────────────────
 function renderRightPanel(){
-  if(CTAB==='news'){renderRPNewsCtrl();return;}
+  if(CTAB==='news'&&NAV_MODE!=='etf'){renderRPNewsCtrl();return;}
+  if(NAV_MODE==='etf'){
+    if(SEL_STOCK&&typeof S!=='undefined'&&S[SEL_STOCK]){renderRPStock();return;}
+    renderRPEtf();
+    return;
+  }
   if(!SEL_STOCK&&!SEL_LAYER){renderRPDefault();return;}
   if(SEL_LAYER&&!SEL_STOCK){renderRPLayer();return;}
   renderRPStock();
+}
+
+function renderRPEtf(){
+  const sec=getEtfSector();
+  const etf=getActiveEtf();
+  const holdings=getActiveEtfHoldings();
+  if(!sec||!etf){
+    setRPHdr('ETF OVERVIEW','');
+    document.getElementById('rp-tabs').style.display='none';
+    document.getElementById('rp-body').innerHTML='<div class="rp-def etf-rp-empty">Select an ETF sector</div>';
+    return;
+  }
+  const c=sec.color||getActiveColor();
+  setRPHdr(etf.symbol||etf.label, sec.label);
+  const b=document.getElementById('rp-badge');
+  if(b){
+    b.style.borderColor=c+'55';
+    b.style.color=c;
+    b.style.background=c+'12';
+  }
+  document.getElementById('rp-tabs').style.display='none';
+  const totW=holdings.reduce((a,h)=>a+(h.weight||0),0);
+  const top5=holdings.slice(0,5);
+  const top5W=top5.reduce((a,h)=>a+(h.weight||0),0);
+  const top10W=holdings.slice(0,10).reduce((a,h)=>a+(h.weight||0),0);
+  const liveN=holdings.filter(h=>S[h.tk]).length;
+  const bars=holdings.slice(0,8).map((h,i)=>{
+    const w=Math.min((h.weight||0)/Math.max(holdings[0]?.weight||1,1)*100,100).toFixed(1);
+    const col=typeof etfRingColor==='function'?etfRingColor(i):c;
+    return`<div class="etf-rp-bar-row">
+      <span class="etf-rp-tk" style="color:${col}">${h.tk}</span>
+      <div class="etf-rp-track"><div class="etf-rp-fill" style="width:${w}%;background:${col}"></div></div>
+      <span class="etf-rp-wt num">${(h.weight||0).toFixed(2)}%</span>
+    </div>`;
+  }).join('');
+  document.getElementById('rp-body').innerHTML=`<div class="rp-def etf-rp">
+    <div class="etf-rp-name">${etf.label}</div>
+    <div class="etf-rp-theme">${etf.theme}</div>
+    <div class="rp-agg-g">
+      <div class="rp-agg-c"><div class="rp-agg-l">HOLDINGS</div><div class="rp-agg-v">${holdings.length}</div></div>
+      <div class="rp-agg-c"><div class="rp-agg-l">SUM WT</div><div class="rp-agg-v acc">${totW.toFixed(1)}%</div></div>
+      <div class="rp-agg-c"><div class="rp-agg-l">TOP 5</div><div class="rp-agg-v">${top5W.toFixed(1)}%</div></div>
+      <div class="rp-agg-c"><div class="rp-agg-l">TOP 10</div><div class="rp-agg-v">${top10W.toFixed(1)}%</div></div>
+    </div>
+    <div class="rp-sec-t">CONCENTRATION</div>
+    ${bars}
+    <div class="rp-sec-t" style="margin-top:14px">TOP HOLDINGS</div>
+    ${top5.map((h,i)=>{
+      const st=S[h.tk];
+      const col=typeof etfRingColor==='function'?etfRingColor(i):c;
+      return`<div class="mv-row" onclick="clickEtfHolding('${h.tk}')">
+        <div><div class="mv-tk" style="color:${col}">${h.tk}</div><div class="mv-nm">${h.name.slice(0,28)}${h.note?' · '+h.note.slice(0,20):''}</div></div>
+        <div class="mv-ch" style="color:var(--txt2)">${(h.weight||0).toFixed(2)}%${st?' · '+pct(st.ch,1):''}</div>
+      </div>`;
+    }).join('')}
+    <div style="padding:10px 0;border-top:1px solid var(--b0);margin-top:8px">
+      <div class="rp-sec-t">META</div>
+      <div class="etf-rp-meta">Source: ${etf.source||'manual'} · As of ${etf.asOf||'—'} · Live quotes ${liveN}/${holdings.length}</div>
+    </div>
+  </div>`;
 }
 
 function setRPHdr(title,badge){
@@ -219,7 +284,8 @@ let rpChDbn=null, rpNwDbn=null;
 
 function renderRPStock(){
   const st=S[SEL_STOCK]; if(!st) return;
-  setRPHdr(SEL_STOCK,CUR);
+  const badge=NAV_MODE==='etf'?(getEtfSector()?.label||CUR_ETF):NAV_MODE==='themes'?CUR_THEME:CUR;
+  setRPHdr(SEL_STOCK,badge);
   const u=st.ch>=0;
   const rpTabs=document.getElementById('rp-tabs'); rpTabs.style.display='flex';
   rpTabs.innerHTML=['chart','data','news'].map(t=>`<button class="rp-tab${RPTAB===t?' on':''}" onclick="setRPTab('${t}',this)">${t.toUpperCase()}</button>`).join('');

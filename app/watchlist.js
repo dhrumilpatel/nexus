@@ -3,8 +3,33 @@
 // WL_LAYERS collapse state lives in app/state.js.
 
 function renderWatchlist(){
+  const c=getActiveColor();
+  let html='';
+
+  if(NAV_MODE==='etf'){
+    const etf=getActiveEtf();
+    const holdings=getActiveEtfHoldings();
+    if(!etf){document.getElementById('wl-sc').innerHTML='';document.getElementById('wlcnt').textContent='0';return;}
+    html+=`<div class="wl-lhdr" style="cursor:default">
+      <span class="wl-ln op" style="color:${c}">${etf.label}</span>
+      <span class="wl-lc">${holdings.length}</span>
+    </div>`;
+    holdings.forEach(h=>{
+      const st=typeof S!=='undefined'?S[h.tk]:null;
+      const u=st?(st.ch>=0):true;
+      html+=`<div class="wl-row${SEL_STOCK===h.tk?' on':''}" data-nexus-tk="${st?h.tk:''}" onclick="clickEtfHolding('${h.tk}')">
+        <div class="wr-tk" style="color:${c}">${h.tk}</div>
+        <div class="wr-px">${st?st.px:(h.weight||0).toFixed(1)+'%'}</div>
+        <div class="wr-nm">${h.name.slice(0,22)}</div>
+        <div class="wr-ch ${st?(u?'up':'dn'):''}">${st?pct(st.ch,1):(h.weight||0).toFixed(2)+'% wt'}</div>
+      </div>`;
+    });
+    document.getElementById('wl-sc').innerHTML=html;
+    document.getElementById('wlcnt').textContent=holdings.length;
+    return;
+  }
+
   const p=getCurrentP(); if(!p) return;
-  const c=getActiveColor(); let html='';
 
   if(p.type==='flat'){
     p.categories.forEach(cat=>{
