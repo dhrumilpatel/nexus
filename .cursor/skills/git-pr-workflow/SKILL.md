@@ -20,6 +20,7 @@ Large multi-topic work: plan a split first (Cursor **split-to-prs** skill) — d
 - **Never commit** unless the user explicitly asks.
 - **Never** change `git config`, force-push `main`/`master`, or run destructive git commands unless the user explicitly approves.
 - **Always** create feature branches from an **updated** `main` (fetch + pull before `checkout -b`).
+- **Never** commit directly to `main` — all work must happen on a branch + PR.
 - **Never** commit secrets: `app/finnhub-key.js`, `.env`, API keys, credentials.
 - Stage **named paths** only — avoid `git add -A` / `git add .` unless the user requests it.
 - **Never push** to `main`/`master` unless the user explicitly requests it.
@@ -37,7 +38,14 @@ git pull origin main
 git checkout -b <type>/<short-slug>
 ```
 
-**Branch names:** `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/` + kebab-case (e.g. `feat/dashboard-kpi`, `docs/compress-md`).
+**Branch strategy (Nexus):**
+
+- `fix/` for bug fixes / issue-driven changes
+- `feature/` for new features
+- `poc/` for short proof-of-concept work
+- Choose prefix based on the actual content/scope of the change being committed.
+
+Use kebab-case suffixes (e.g. `fix/live-prices-flicker`, `feature/fmp-history-panel`, `poc/news-ranking-spike`).
 
 Do **not** branch from another feature branch unless the user explicitly wants a stack.
 
@@ -142,6 +150,9 @@ Return the **PR URL** to the user when done.
 | Behind `main` | `git fetch origin && git pull --rebase origin main` on feature branch; push (feature branch force-push only with user OK) |
 | Wrong branch base | Recreate from `main` or change base on GitHub |
 | Auth / private repo | `gh auth login`; verify `gh auth status` |
+| `gh` works but `git push` fails | Check transport separately: `getent hosts github.com`, `curl -I https://github.com`, then retry push |
+| SSH hostname/permission issues | Prefer HTTPS remote for this repo: `git remote set-url origin https://github.com/dhrumilpatel/nexus.git` |
+| Temporary DNS/network flake | Retry push/PR once or twice before escalating; keep branch/commit ready and provide exact commands |
 | No upstream | `git push -u origin HEAD` |
 | User asked only for PR | Still verify branch/commits; do not commit unless asked |
 
@@ -150,6 +161,7 @@ Return the **PR URL** to the user when done.
 ## Nexus repo notes
 
 - Remote: `origin` → `https://github.com/dhrumilpatel/nexus` (private).
+- Identity for this repo: `dhrumil4u <dhrumil4u@gmail.com>` unless user explicitly requests otherwise.
 - Do not commit `app/finnhub-key.js` (gitignored).
 - Deploy or live-price changes: include quick Vercel / LIVE verification notes in PR summary — see [deployment.md](../../../deployment.md).
 
