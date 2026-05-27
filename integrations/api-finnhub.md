@@ -1,83 +1,42 @@
 # Finnhub API
 
-**Phase:** 2 · **Cost:** Free — 60 REST/min; WS separate  
-**Status:** Active (optional) — key in `app/finnhub-key.js` (see `finnhub-key.example.js`) or Vercel proxy  
-**Docs:** https://finnhub.io/docs/api  
-**Code:** `live-prices.js`, `finnhub-dashboard.js`  
-**Proxy:** `integrations/README.md` → Proxy pattern · **Deploy:** `deployment.md`
+**Phase:** 2 · **60 REST/min** · **Status:** optional — `finnhub-key.js` or Vercel proxy
+**Code:** `live-prices.js`, `finnhub-dashboard.js` · **Proxy:** `integrations/README.md` · **Deploy:** `deployment.md`
 
-**NEXUS rate limiting:** `NEXUS_FINNHUB_POLL_MS` (e.g. 120000); spaced `/quote` per sweep; DOM patch via `data-nexus-tk`. Optional `NEXUS_FINNHUB_USE_WS`.
+Poll `NEXUS_FINNHUB_POLL_MS` (~120s); DOM patch `data-nexus-tk`; optional `NEXUS_FINNHUB_USE_WS` (local + key only).
 
 ---
 
-## Endpoints in use
+## Endpoints
 
-| Feature | Endpoint | Module |
-|---------|----------|--------|
-| Live prices | WS + `/quote` | `live-prices.js` |
-| Dashboard sentiment | `/stock/recommendation` | `finnhub-dashboard.js` (top 10 Mcap, 6h cache `nexus_fh_dash_v4`) |
-| Fundamentals (planned) | `/stock/metric` | on select |
-| Earnings (planned) | `/stock/earnings` | on select |
+| Use | Endpoint | Module |
+|-----|----------|--------|
+| Prices | WS + `/quote` | `live-prices.js` |
+| Sentiment | `/stock/recommendation` | `finnhub-dashboard.js` (top 10 Mcap, 6h cache) |
+| Planned | `/stock/metric`, `/stock/earnings` | on select |
 
-**Not used:** `/news-sentiment` — 403 on free tier.
-
----
-
-## Setup
-
-1. Register at finnhub.io; copy key.
-2. `finnhub-config.example.js` → `finnhub-config.js`; `finnhub-key.example.js` → `finnhub-key.js`; paste key in key file only.
-3. Serve over HTTP(S), not `file://`.
-4. Public repo: Vercel proxy (see README).
+`/news-sentiment` — 403 free tier (unused).
 
 ---
 
-## WebSocket (live-prices.js)
+## Local setup
 
-- Symbols: `getFinnhubSymbol(tk)` in `utils.js` (not `getTVSym`).
-- Map `trade.s` back to registry key.
-- Use REST `/quote` `dp` or `pc` off-hours.
-- Subscribe only active universe (~50 symbol cap on free tier).
-
-```javascript
-ws = new WebSocket(`wss://ws.finnhub.io?token=${KEY}`);
-ws.send(JSON.stringify({ type: 'subscribe', symbol: getFinnhubSymbol(tk) }));
-```
+`cp finnhub-config.example.js` + `finnhub-key.example.js` → paste key in **key file only** · HTTP(S) required.
 
 ---
 
-## REST (key fields)
+## WS (local)
 
-**Quote** `GET /quote?symbol=NVDA` → `c`, `dp`, `pc` → tile `px`, `ch`
-
-**Metric** `GET /stock/metric?symbol=NVDA&metric=all` → `peAnnual`, `epsAnnual`, `beta`, `marketCapitalization`, …
-
-**Recommendation** `GET /stock/recommendation?symbol=NVDA` → `strongBuy`, `buy`, `hold`, `sell`, `strongSell` → `S[tk].rs`
+`getFinnhubSymbol(tk)` not `getTVSym` · ~50 symbol cap · REST fallback off-hours.
 
 ---
 
-## Dashboard sentiment
+## REST fields
 
-`finnhub-dashboard.js`: cap-weighted `avgBuyBias` from top-10 Mcap sample; gauge in `view-dashboard.js`; hidden if no data; no footer panel.
-
----
-
-## Limits & batching
-
-| Limit | NEXUS |
-|-------|--------|
-| 60 calls/min | Spaced sweep in `live-prices.js` |
-| 50 WS symbols | Active sector only |
-| No free history | Use FMP (`api-fmp.md`) |
-
-Fundamentals on select: session cache ~5 min; don't prefetch all tickers at load.
+`/quote` → `c`, `dp`, `pc` · `/stock/metric` → PE, EPS, beta, MCap · `/stock/recommendation` → `rs[]`
 
 ---
 
-## Status
+## Limits
 
-| Module | Done |
-|--------|------|
-| `live-prices.js` | Quotes + optional WS |
-| `finnhub-dashboard.js` | Analyst KPI |
-| `api/finnhub.js` proxy | Planned |
+60/min spaced sweep · 50 WS symbols · history → FMP (`api-fmp.md`). On-select cache ~5 min; no bulk prefetch.
