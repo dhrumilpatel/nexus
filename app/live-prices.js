@@ -116,10 +116,25 @@
       try{
         if(typeof renderWatchlist==='function') renderWatchlist();
         if(typeof renderSummaryBar==='function') renderSummaryBar();
-        if(typeof renderRightPanel==='function'&&typeof SEL_STOCK!=='undefined'&&SEL_STOCK) renderRightPanel();
+        patchRightPanelIfVisible();
         patchDashboardIfActive();
       }catch(e){}
     });
+  }
+
+  function patchRightPanelIfVisible(){
+    if(typeof SEL_STOCK==='undefined'||!SEL_STOCK||typeof S==='undefined') return;
+    const st=S[SEL_STOCK];
+    if(!st) return;
+    const rpBody=document.getElementById('rp-body');
+    if(!rpBody||!rpBody.querySelector('.rp-hero')) return;
+    const px=rpBody.querySelector('.rp-px');
+    const ch=rpBody.querySelector('.rp-ch');
+    if(px) px.textContent=st.px;
+    if(ch){
+      ch.textContent=pct(st.ch);
+      ch.className='rp-ch '+(st.ch>=0?'up':'dn');
+    }
   }
 
   function parsePxNumber(px){
