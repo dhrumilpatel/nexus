@@ -37,6 +37,8 @@ Static dashboard on Vercel with live data via serverless proxies: Finnhub (`/api
 3. Poll `/api/finnhub?path=quote&symbol=…` for active tickers.
 4. DOM patch `data-nexus-tk`; dashboard sentiment via `/stock/recommendation`.
 
+**Smoke (sectors):** After deploy, open **CYBER** and **PHOTONICS** pills — each pyramid should show full watchlist (21 / 40 names) with live price patches where Finnhub resolves the symbol.
+
 ## Fundamentals refresh (Phase 2)
 
 1. Open right panel **DATA** tab on a selected ticker.

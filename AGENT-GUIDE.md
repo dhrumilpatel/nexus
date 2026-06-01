@@ -41,6 +41,8 @@ CLS: { n:'Celestica Inc', px:'$82.40', ch:1.24, mc:12.4, ms:'$12.4B',
 
 **Sector:** `PYRAMIDS` in `sectors.js` + `SEC_LABELS` / `SEC_COLORS` in `state.js`. **Theme:** `THEMES_DATA` (+ `label`, `color`).
 
+**Pyramids (Jun 2026):** `AI`, `SPACE`, `QUANTUM`, `PHOTONIC`, `CYBER`, `SEMICONDUCTOR`, `NUCLEAR`; flat `COMMODITY`. Infographic seeds: PHOTONIC (40), CYBER (21) — add tickers in `stocks.js`, layers in `sectors.js`, `getTVSym` in `utils.js` for non-US symbols.
+
 **Views:** one `views/view-*.js` only. **CSS:** `nexus.css` (`.band-*`, `.tile-*`, `.wheel-*`, `.dash-*` ~L431+).
 
 **Helpers:** `sectorMcapWeights`, `maxMcapWeightTicker` in `utils.js`.
