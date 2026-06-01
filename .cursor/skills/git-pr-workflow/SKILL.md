@@ -161,7 +161,7 @@ EOF
 
 Use [pr-template.md](pr-template.md). **No empty PRs.** Return the **PR URL**.
 
-**Draft:** `--draft` only if user asks.
+**Draft:** Never `--draft` — open ready-for-review PRs unless the user explicitly requests a draft.
 
 **Issues:** `Closes #123` when applicable.
 
