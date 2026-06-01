@@ -12,5 +12,6 @@ alwaysApply: true
 - **ETF mode (merged #8):** `NAV_MODE=etf` · `data/etfs.js` · `views/view-etf.js` · `app/etf-api.js`
 - **ETF data (merged #9):** infographic seeds — DRAM, LYTE, EUV, MARS, Humanoid, Green, Tema · `data/stocks.js`
 - **PHOTONIC sector:** 40-name pyramid seed (Lin @speculator_io · May 2026) · `data/sectors.js` + `data/stocks.js`
+- **CYBER sector:** 21-name pyramid seed (Lin @speculator_io · May 2026) · `data/sectors.js` + `data/stocks.js`
 - **Sticker list:** `data/stocks.js` → `S` + `tags[]` for sector mapping
 - **Deploy:** Vercel static · `vercel.json` `outputDirectory: "."`

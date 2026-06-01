@@ -39,6 +39,14 @@ const PYRAMIDS={
     {id:'test',name:'Test, sensing & broader photonics',theme:'Optical transport · DC switching · instrumentation · wafer-level photonic test',stocks:['CIEN','AEHR','VECO','ONTO','FORM','COHU','TER','LRCX','AMAT'],w:100,up:true},
   ]},
 
+  CYBER:{type:'pyramid',label_full:'CYBERSECURITY · LIN MAY 2026',layers:[
+    {id:'platform',name:'Platform & network security',theme:'SIEM/SASE leaders · firewall consolidation · cloud edge',stocks:['PANW','CRWD','FTNT','ZS','NET'],w:68},
+    {id:'endpoint',name:'Endpoint & cloud-native',theme:'EDR/XDR · zero trust · identity-adjacent security',stocks:['S','OKTA','TENB','RBRK','VRNS'],w:74},
+    {id:'vuln_ops',name:'Vulnerability & security ops',theme:'Exposure management · SIEM adjacency · IR tooling',stocks:['RPD','CHKP','FFIV','ATEN','SCWX'],w:80},
+    {id:'infra',name:'Infrastructure & diversified tech',theme:'Network appliances · mega-cap networking · offshore IT',stocks:['CSCO','INFY','YOU'],w:86},
+    {id:'gov',name:'Gov & professional services',theme:'Federal cyber spend · consulting · critical infrastructure',stocks:['BAH','LDOS','PSN'],w:100,up:true},
+  ]},
+
   SEMICONDUCTOR:{type:'pyramid',label_full:'CRITICAL AI BOTTLENECK · SEMICONDUCTORS',layers:[
     {id:'compute',name:'Compute & CPU IP',theme:'GPUs · AI accelerators · x86 turnaround · ARM licensing',stocks:['AMD','INTC','ARM'],w:68},
     {id:'connectivity',name:'Data infrastructure & mixed-signal',theme:'Cloud networking · RF · analog & optical links',stocks:['MRVL','MXL','MTSI'],w:74},
