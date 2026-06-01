@@ -78,6 +78,7 @@ Proxy match: `finnhub-config.deploy.js` + `FINNHUB_API_KEY` + `npx vercel dev`.
 | `/api/fmp` 500/502 | Missing `FMP_API_KEY` / upstream issue |
 | 404 config or key JS | Vercel build log — `cp` step failed |
 | Key committed | Only `finnhub-key.js` is secret |
+| Vercel blocked (commit author) | Feature commits must be `dhrumil4u <dhrumil4u@gmail.com>`; `git commit --amend --author="dhrumil4u <dhrumil4u@gmail.com>"` then force-push the branch |
 | TV blank | HTTPS not `file://` |
 
 ---
