@@ -31,12 +31,12 @@ const PYRAMIDS={
   ]},
 
   PHOTONIC:{type:'pyramid',label_full:'PHOTONICS · POWERING THE FUTURE WITH LIGHT',layers:[
-    {id:'materials',name:'Photonic materials & substrates',theme:'Glass & ceramics · nonlinear optics · compound substrates · high-purity chemistry',stocks:['GLW','LWLG','AXTI','ALB'],w:68},
-    {id:'packaging',name:'Packaging & assembly',theme:'Advanced optical modules · OSAT · foundry for photonic & RF SOI',stocks:['FN','AMKR','TSM','GFS'],w:74},
-    {id:'lasers',name:'Lasers & light sources',theme:'Datacom lasers · industrial & scientific · fiber amplifiers · diode & custom solutions',stocks:['LITE','COHR','IPGP','LPTH','LASR','LASE'],w:80},
-    {id:'optical',name:'Optical components & transceivers',theme:'Subsystems · fiber connectivity · pluggable optics',stocks:['AAOI','OPTX'],w:86},
-    {id:'pics',name:'Photonic integrated circuits',theme:'Silicon photonics · PIC platforms · optical I/O & custom networking silicon',stocks:['MTSI','POET','AVGO','MRVL','CRDO'],w:92},
-    {id:'test',name:'Test, sensing & broader photonics',theme:'Optical transport · DC switching · instrumentation · wafer-level photonic test',stocks:['CIEN','CSCO','MKSI','VIAV','AEHR'],w:100,up:true},
+    {id:'materials',name:'Photonic materials & substrates',theme:'Glass & ceramics · nonlinear optics · compound substrates · high-purity chemistry',stocks:['IQE','AXTI','GLW','LWLG','WOLF','TECK'],w:68},
+    {id:'packaging',name:'Packaging & assembly',theme:'Advanced optical modules · OSAT · foundry for photonic & RF SOI',stocks:['FN','AMKR','GFS','SIVE','TSEM','UMC','ASX'],w:74},
+    {id:'lasers',name:'Lasers & light sources',theme:'Datacom lasers · industrial & scientific · fiber amplifiers · diode & custom solutions',stocks:['LITE','COHR','LASR','LPTH','AIXA','HIMX'],w:80},
+    {id:'optical',name:'Optical components & transceivers',theme:'Subsystems · fiber connectivity · pluggable optics',stocks:['AAOI','OPTX','VIAV','SMTC','ALRIB','ALMU'],w:86},
+    {id:'pics',name:'Photonic integrated circuits',theme:'Silicon photonics · PIC platforms · optical I/O & custom networking silicon',stocks:['MRVL','CRDO','POET','MTSI','STM','XFAB'],w:92},
+    {id:'test',name:'Test, sensing & broader photonics',theme:'Optical transport · DC switching · instrumentation · wafer-level photonic test',stocks:['CIEN','AEHR','VECO','ONTO','FORM','COHU','TER','LRCX','AMAT'],w:100,up:true},
   ]},
 
   SEMICONDUCTOR:{type:'pyramid',label_full:'CRITICAL AI BOTTLENECK · SEMICONDUCTORS',layers:[
