@@ -1,6 +1,6 @@
 // Copy to finnhub-config.js for local settings. Key goes in finnhub-key.js (see finnhub-key.example.js).
 window.NEXUS_FINNHUB_USE_PROXY = false;
-window.NEXUS_FINNHUB_POLL_MS = 120000;
+window.NEXUS_FINNHUB_POLL_MS = 60000;
 window.NEXUS_FINNHUB_USE_WS = true;
 //
 // Production on Vercel: finnhub-config.deploy.js + FINNHUB_API_KEY env — see deployment.md

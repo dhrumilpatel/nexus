@@ -3,7 +3,7 @@
 **Phase:** 2 · **60 REST/min** · **Status:** optional — `finnhub-key.js` or Vercel proxy
 **Code:** `live-prices.js`, `finnhub-dashboard.js` · **Proxy:** `integrations/README.md` · **Deploy:** `deployment.md`
 
-Poll `NEXUS_FINNHUB_POLL_MS` (~120s); DOM patch `data-nexus-tk`; optional `NEXUS_FINNHUB_USE_WS` (local + key only).
+Poll `NEXUS_FINNHUB_POLL_MS` (~60s); prior-close fallback when `c` missing; click badge → `refreshNow()`; DOM patch `data-nexus-tk`; optional `NEXUS_FINNHUB_USE_WS` (local + key only).
 
 ---
 
