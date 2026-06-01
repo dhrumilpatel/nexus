@@ -39,6 +39,7 @@ cache/ · scripts/ · integrations/ · data/ · views/ · app/
 | Session snapshot | `journal.md` |
 | Deploy Vercel + live prices | `deployment.md` |
 | Branch, commit, open PR | `.cursor/skills/git-pr-workflow/SKILL.md` |
+| Git author (Vercel) | `.cursor/rules/nexus-repo-identity.mdc` |
 | Compress memory + keep workspace clean | `.cursor/skills/token-management/SKILL.md` |
 | APIs + proxy | `integrations/README.md` |
 | Finnhub wiring | `integrations/api-finnhub.md` |

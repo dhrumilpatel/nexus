@@ -1,0 +1,13 @@
+---
+description: Nexus git author — personal repo only (dhrumil4u@gmail.com)
+alwaysApply: true
+---
+
+# Nexus repository identity
+
+- **Owner:** `dhrumilpatel` · https://github.com/dhrumilpatel/nexus
+- **Git author (every agent commit on feature branches):** `dhrumil4u <dhrumil4u@gmail.com>`
+- Use `git commit --author="dhrumil4u <dhrumil4u@gmail.com>"` — do not rely on the machine’s default `user.name` / `user.email`.
+- Before push: `git log -1 --format='%ae'` must be `dhrumil4u@gmail.com`.
+- Merge commits on `main` may show GitHub `users.noreply.github.com` — that is fine; **your** branch commits must use Gmail above (Vercel/GitHub deployment checks).
+- Do not change global `git config` unless the user explicitly asks.

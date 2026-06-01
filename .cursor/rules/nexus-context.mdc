@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Nexus — compressed context
 
-- **Repo:** `dhrumilpatel/nexus` · `dhrumil4u <dhrumil4u@gmail.com>` · never commit to `main`
+- **Repo:** `dhrumilpatel/nexus` · git author `dhrumil4u <dhrumil4u@gmail.com>` only (`--author` on every commit) · never commit to `main`
 - **PR workflow:** pull latest `main` → check prior PR **merged** → one light PR per concern → new branch for follow-ups (see `.cursor/skills/git-pr-workflow/`)
 - **Branches:** `fix/` · `feature/` · `poc/` · `docs/` by scope
 - **ETF mode (merged #8):** `NAV_MODE=etf` · `data/etfs.js` · `views/view-etf.js` · `app/etf-api.js`

@@ -98,19 +98,22 @@ If the user asks for more work after a merge: **new branch from `main`**, **new 
 
 ## Commit
 
+**Author (mandatory):** every commit on a feature branch must use Nexus identity — see [.cursor/rules/nexus-repo-identity.mdc](../../rules/nexus-repo-identity.mdc).
+
 ```bash
 git add <path1> <path2>   # specific files only
-git commit -m "$(cat <<'EOF'
+git commit --author="dhrumil4u <dhrumil4u@gmail.com>" -m "$(cat <<'EOF'
 <type>: one-line why.
 
 Optional second sentence for context.
 EOF
 )"
+git log -1 --format='%ae'   # must print: dhrumil4u@gmail.com
 ```
 
 **Message style:** 1–2 sentences, focus on **why**. Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`.
 
-**Before commit:** `git status` + `git diff` — no secrets, intended files only.
+**Before commit:** `git status` + `git diff` — no secrets, intended files only. **Before push:** verify author email (Vercel rejects unrecognized authors).
 
 ---
 
@@ -207,7 +210,8 @@ When opening a PR, if context changed, include a **one-line** update to `nexus-c
 ## Nexus repo notes
 
 - Remote: `origin` → `https://github.com/dhrumilpatel/nexus`
-- Identity: `dhrumil4u <dhrumil4u@gmail.com>`
+- Identity: `dhrumil4u <dhrumil4u@gmail.com>` — always `--author=…` on commit; never use the agent machine’s default email
+- Rule file: [nexus-repo-identity.mdc](../../rules/nexus-repo-identity.mdc)
 - Do not commit `app/finnhub-key.js`
 - Deploy / live-price PRs: note Vercel / LIVE check in Summary — [deployment.md](../../../deployment.md)
 
@@ -220,6 +224,7 @@ When opening a PR, if context changed, include a **one-line** update to `nexus-c
 - [ ] Prior PR merged? → new branch; only delta commits
 - [ ] Single concern; diff stays light
 - [ ] Named paths staged; no secrets
+- [ ] `git log -1 --format='%ae'` is `dhrumil4u@gmail.com`
 - [ ] Pushed with upstream; not behind main
 - [ ] gh pr create with Summary (+ test plan if code)
 - [ ] nexus-context.mdc updated if durable state changed
