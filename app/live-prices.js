@@ -1,10 +1,11 @@
 // NEXUS — Live quotes via Finnhub (REST + optional WebSocket).
 // Finnhub free tier: 60 REST calls/minute — we space /quote requests by REST_GAP_MS.
 // Price updates patch DOM only (data-nexus-tk) so the pyramid layout does not rebuild every tick.
-// Config: finnhub-config.js (poll, proxy, WS) + finnhub-key.js (key) or Vercel /api/finnhub
+// Fallback: live c → prior close pc → session cache → stocks.js seed (unchanged).
 
 (function(){
   const REST_GAP_MS=1100;
+  const QUOTE_CACHE_KEY='nexus_quote_cache_v1';
 
   function api(){ return window.NexusFinnhubApi; }
   function finnhubActive(){ return api()&&api().active(); }
@@ -14,29 +15,76 @@
   let pollTimer=null;
   let pollBusy=false;
   let pendingResweep=false;
+  let pendingResweepOpts=null;
   let sideRaf=null;
+  let hasEverLive=false;
   const subscribed=new Set();
   const quoteCache={};
 
   function pollMs(){ const n=+window.NEXUS_FINNHUB_POLL_MS; return n>=60000?n:300000; }
 
-  function setLiveStatus(mode){
+  function formatPx(n){
+    return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function loadPersistedQuoteCache(){
+    try{
+      const raw=sessionStorage.getItem(QUOTE_CACHE_KEY);
+      if(!raw) return;
+      const all=JSON.parse(raw);
+      if(all&&typeof all==='object') Object.assign(quoteCache,all);
+    }catch(e){}
+  }
+
+  function persistQuoteCache(sym,entry){
+    quoteCache[sym]=entry;
+    try{
+      const raw=sessionStorage.getItem(QUOTE_CACHE_KEY);
+      const all=raw?JSON.parse(raw):{};
+      all[sym]=entry;
+      sessionStorage.setItem(QUOTE_CACHE_KEY,JSON.stringify(all));
+    }catch(e){}
+  }
+
+  function setLiveStatus(mode,title){
     const lbl=document.getElementById('live-lbl');
     const txt=document.getElementById('live-txt');
     if(!lbl||!txt) return;
-    lbl.classList.remove('live-static','live-sync');
+    lbl.classList.remove('live-static','live-sync','live-close');
     if(mode==='active'){
       txt.textContent='LIVE';
-      lbl.title='Finnhub quotes active';
+      lbl.title=title||'Finnhub live quotes · click to refresh';
+    }else if(mode==='close'){
+      lbl.classList.add('live-close');
+      txt.textContent='CLOSE';
+      lbl.title=title||'Prior session close (live quote unavailable) · click to refresh';
     }else if(mode==='sync'){
       lbl.classList.add('live-sync');
       txt.textContent='SYNC';
-      lbl.title='Refreshing quotes…';
+      lbl.title=title||'Refreshing quotes…';
     }else{
       lbl.classList.add('live-static');
       txt.textContent='STATIC';
-      lbl.title='Set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in app/finnhub-key.js';
+      lbl.title=title||'Set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in finnhub-key.js';
     }
+  }
+
+  function wireBadgeRefresh(){
+    const lbl=document.getElementById('live-lbl');
+    if(!lbl||lbl.dataset.nexusRefresh) return;
+    lbl.dataset.nexusRefresh='1';
+    lbl.style.cursor='pointer';
+    lbl.setAttribute('role','button');
+    lbl.setAttribute('tabindex','0');
+    lbl.addEventListener('click',()=>{
+      if(window.NexusLivePrices) NexusLivePrices.refreshNow({forceSync:true});
+    });
+    lbl.addEventListener('keydown',ev=>{
+      if(ev.key==='Enter'||ev.key===' '){
+        ev.preventDefault();
+        if(window.NexusLivePrices) NexusLivePrices.refreshNow({forceSync:true});
+      }
+    });
   }
 
   function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
@@ -143,25 +191,80 @@
     return Number.isFinite(n)&&n>0?n:null;
   }
 
-  function applyQuote(tk,j){
+  function scaleMcapFromPrice(tk,nextPx){
     const st=S[tk];
-    if(!st||j==null||j.c==null||j.c===0) return false;
+    if(!st||(st.mc||0)<=0) return;
     const prevPx=parsePxNumber(st.px);
-    const c=Number(j.c), pc=j.pc!=null?Number(j.pc):null;
-    st.px='$'+c.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    if((st.mc||0)>0&&prevPx){
-      const ratio=c/prevPx;
-      if(Number.isFinite(ratio)&&ratio>0){
-        st.mc*=ratio;
-        st.ms='$'+fmtB(st.mc);
-      }
+    if(!prevPx||!nextPx) return;
+    const ratio=nextPx/prevPx;
+    if(Number.isFinite(ratio)&&ratio>0){
+      st.mc*=ratio;
+      st.ms='$'+fmtB(st.mc);
     }
-    if(typeof j.dp==='number'&&!Number.isNaN(j.dp)) st.ch=j.dp;
+  }
+
+  function applyQuoteFromValues(tk,c,pc,dp,source){
+    const st=S[tk];
+    if(!st||!c||c<=0) return false;
+    scaleMcapFromPrice(tk,c);
+    st.px=formatPx(c);
+    if(typeof dp==='number'&&!Number.isNaN(dp)) st.ch=dp;
     else if(pc&&pc>0) st.ch=(c-pc)/pc*100;
-    st._livePx=true;
+    st._quoteSource=source;
+    st._livePx=source==='live';
     const sym=getFinnhubSymbol(tk);
-    quoteCache[sym]={pc:pc||quoteCache[sym]?.pc,c};
+    persistQuoteCache(sym,{c,pc:pc||quoteCache[sym]?.pc,at:Date.now(),source});
     return true;
+  }
+
+  function applyPriorClose(tk,pc,source){
+    const st=S[tk];
+    if(!st||!pc||pc<=0) return false;
+    scaleMcapFromPrice(tk,pc);
+    st.px=formatPx(pc);
+    st.ch=0;
+    st._quoteSource=source;
+    st._livePx=false;
+    const sym=getFinnhubSymbol(tk);
+    persistQuoteCache(sym,{c:pc,pc,at:Date.now(),source});
+    return true;
+  }
+
+  function applyQuoteFromCache(tk){
+    const sym=getFinnhubSymbol(tk);
+    const qc=quoteCache[sym];
+    if(!qc) return false;
+    if(qc.source==='live'&&qc.c>0) return applyQuoteFromValues(tk,qc.c,qc.pc,null,'cache');
+    const px=qc.pc>0?qc.pc:(qc.c>0?qc.c:null);
+    if(px) return applyPriorClose(tk,px,qc.source==='prior_close'?'prior_close':'cache');
+    return false;
+  }
+
+  function applyQuote(tk,j){
+    if(typeof S==='undefined'||!S[tk]) return false;
+    if(j==null) return applyQuoteFromCache(tk);
+    const c=j.c!=null?Number(j.c):null;
+    const pc=j.pc!=null?Number(j.pc):null;
+    const dp=j.dp;
+    if(c!=null&&c>0&&applyQuoteFromValues(tk,c,pc,dp,'live')) return 'live';
+    if(pc!=null&&pc>0&&applyPriorClose(tk,pc,'prior_close')) return 'prior_close';
+    if(applyQuoteFromCache(tk)){
+      const src=S[tk]._quoteSource;
+      return src==='prior_close'?'prior_close':'cache';
+    }
+    return false;
+  }
+
+  function bootstrapFromCache(){
+    if(typeof getActiveStocks!=='function'||typeof S==='undefined') return;
+    let n=0;
+    getActiveStocks().forEach(tk=>{
+      if(applyQuoteFromCache(tk)){
+        n++;
+        patchTickerInDom(tk);
+      }
+    });
+    if(n) scheduleSidebarRenders();
   }
 
   function sortedActiveTickers(){
@@ -194,9 +297,30 @@
     }
     if(subs[1]){
       const liveOn=window.NexusLivePrices&&NexusLivePrices.isActive();
-      subs[1].textContent=`Breadth ${nUp}/${stks.length} advancing${liveOn?' · LIVE':''}`;
+      const badge=document.getElementById('live-txt');
+      const tag=badge&&(badge.textContent==='CLOSE')?' · CLOSE':(liveOn?' · LIVE':'');
+      subs[1].textContent=`Breadth ${nUp}/${stks.length} advancing${tag}`;
       subs[1].className='dash-card-sub dash-card-sub-stack '+(nUp>=stks.length/2?'up':'dn');
     }
+  }
+
+  function finishSweepStatus(liveCount,closeCount,updated){
+    if(!finnhubActive()){
+      setLiveStatus('static');
+      return;
+    }
+    if(liveCount>0){
+      hasEverLive=true;
+      const hint=closeCount?` · ${closeCount} prior close`:'';
+      setLiveStatus('active',`Finnhub live quotes${hint} · click to refresh`);
+      return;
+    }
+    if(closeCount>0||updated>0){
+      setLiveStatus('close');
+      return;
+    }
+    if(hasEverLive) setLiveStatus('active');
+    else setLiveStatus('static');
   }
 
   function fetchQuote(tk){
@@ -214,23 +338,31 @@
     return null;
   }
 
-  async function runPollSweep(){
+  async function runPollSweep(opts){
+    opts=opts||{};
     if(!finnhubActive()) return;
-    if(pollBusy){ pendingResweep=true; return; }
+    if(pollBusy){
+      pendingResweep=true;
+      pendingResweepOpts=opts;
+      return;
+    }
     if(typeof getActiveStocks!=='function') return;
     pollBusy=true;
     pendingResweep=false;
-    setLiveStatus('sync');
+    const showSync=!!opts.forceSync||!hasEverLive;
+    if(showSync) setLiveStatus('sync');
     const PRIORITY_N=8;
-    let updated=0;
+    let updated=0,liveCount=0,closeCount=0;
     try{
       const list=sortedActiveTickers();
       for(let i=0;i<list.length;i++){
-        const ok=await fetchQuote(list[i]);
-        if(ok){
+        const result=await fetchQuote(list[i]);
+        if(result){
           updated++;
+          if(result==='live') liveCount++;
+          else if(result==='prior_close'||result==='cache') closeCount++;
           patchTickerInDom(list[i]);
-          if(updated===1) setLiveStatus('active');
+          if(liveCount===1&&showSync) setLiveStatus('active');
         }
         if(i%2===0||i===list.length-1) scheduleSidebarRenders();
         if(i<PRIORITY_N-1) await sleep(200);
@@ -238,12 +370,17 @@
       }
       scheduleSidebarRenders();
       patchDashboardIfActive();
-      setLiveStatus(updated>0||finnhubActive()?'active':'static');
+      finishSweepStatus(liveCount,closeCount,updated);
     }catch(e){
-      setLiveStatus(finnhubActive()?'active':'static');
+      finishSweepStatus(liveCount,closeCount,updated);
     }finally{
       pollBusy=false;
-      if(pendingResweep) runPollSweep();
+      const nextOpts=pendingResweepOpts;
+      pendingResweepOpts=null;
+      if(pendingResweep){
+        pendingResweep=false;
+        runPollSweep(nextOpts||{});
+      }
     }
   }
 
@@ -276,7 +413,11 @@
       const tk=tkFromFeedSymbol(t.s);
       if(!tk||!S[tk]) return;
       const p=Number(t.p);
-      S[tk].px='$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      scaleMcapFromPrice(tk,p);
+      S[tk].px=formatPx(p);
+      S[tk]._quoteSource='live';
+      S[tk]._livePx=true;
+      hasEverLive=true;
       const sym=getFinnhubSymbol(tk);
       const qc=quoteCache[sym];
       if(qc&&qc.pc) S[tk].ch=(p-qc.pc)/qc.pc*100;
@@ -297,6 +438,8 @@
     ws.onerror=()=>{ try{ ws.close(); }catch(e){} };
   }
 
+  loadPersistedQuoteCache();
+
   window.NexusLivePrices={
     start(){
       if(!finnhubActive()){
@@ -305,15 +448,18 @@
         return;
       }
       window.NexusLivePrices.stop();
+      wireBadgeRefresh();
+      bootstrapFromCache();
       setLiveStatus('sync');
-      runPollSweep();
-      pollTimer=setInterval(runPollSweep,pollMs());
+      runPollSweep({forceSync:true});
+      pollTimer=setInterval(()=>runPollSweep({}),pollMs());
       if(useWs()) connectWs();
     },
     stop(){
       if(pollTimer){ clearInterval(pollTimer); pollTimer=null; }
       subscribed.clear();
       if(ws){ try{ ws.close(); }catch(e){} ws=null; }
+      hasEverLive=false;
       setLiveStatus('static');
     },
     resubscribe(){
@@ -326,10 +472,10 @@
       }else if(useWs()){
         connectWs();
       }
-      runPollSweep();
+      bootstrapFromCache();
+      runPollSweep({});
     },
-    refreshNow(){ runPollSweep(); },
-    /** Patch DOM from S[] after tab render (no new API calls). */
+    refreshNow(opts){ runPollSweep({forceSync:true,...opts}); },
     refreshVisible(){
       if(typeof getActiveStocks!=='function'||typeof S==='undefined') return;
       getActiveStocks().forEach(tk=>{ if(S[tk]) patchTickerInDom(tk); });

@@ -12,7 +12,7 @@ Static dashboard on Vercel with live data via serverless proxies: Finnhub (`/api
 |------|--------|
 | Host | Vercel Hobby |
 | Live prices | `live-prices.js` → `/api/finnhub` → `/quote` |
-| Poll | 120s (`NEXUS_FINNHUB_POLL_MS`) |
+| Poll | 60s (`NEXUS_FINNHUB_POLL_MS`) |
 | Historical fundamentals | `rightpanel.js` DATA tab → `/api/fmp` |
 | WS | Local only (`finnhub-key.js` + `USE_WS`); off on Vercel |
 | Config | `finnhub-config.js` — poll, proxy, WS (**no key**) |
@@ -52,7 +52,7 @@ Static dashboard on Vercel with live data via serverless proxies: Finnhub (`/api
 | Badge | LIVE or SYNC |
 | `/api/finnhub?path=quote&symbol=AAPL` | JSON `c`, `dp` |
 | `/api/fmp?path=income-statement/AAPL&period=quarter&limit=1` | JSON array with `revenue`, `netIncome` |
-| ~2 min | Prices update on sector change |
+| ~1 min | Background quote poll; click LIVE/SYNC/CLOSE badge to refresh now |
 
 ---
 

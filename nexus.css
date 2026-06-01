@@ -44,6 +44,8 @@ header{display:flex;align-items:center;gap:10px;padding:0 14px;height:44px;backg
 .live-lbl.live-static .live-dot{background:var(--muted);box-shadow:none;animation:none}
 .live-lbl.live-sync{color:var(--warn)}
 .live-lbl.live-sync .live-dot{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.live-lbl.live-close{color:var(--acc)}
+.live-lbl.live-close .live-dot{background:var(--acc);box-shadow:0 0 6px var(--acc);animation:none}
 #clock{font-size:var(--f11);color:var(--muted)}
 .hbtn{padding:4px 9px;font-size:var(--f11);letter-spacing:.08em;border-radius:3px;border:1px solid var(--b1);color:var(--muted);transition:all .14s}
 .hbtn:hover{color:var(--txt);border-color:var(--b2);background:var(--b0)}
