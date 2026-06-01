@@ -13,6 +13,8 @@ Markdown for developers/agents. Not required for the UI.
 | **Repo** | [github.com/dhrumilpatel/nexus](https://github.com/dhrumilpatel/nexus) (private) |
 | **Branch** | `main` |
 | **Deploy** | [`deployment.md`](deployment.md) — Vercel, `FINNHUB_API_KEY`, smoke tests |
+| **Sector pyramids** | AI · SPACE · QUANTUM · PHOTONIC · CYBER · SEMICONDUCTOR · NUCLEAR · COMMODITY (flat) — `data/sectors.js` |
+| **Infographic seeds** | PHOTONIC (40) · CYBER (21) — Lin May 2026 · `data/stocks.js` |
 
 | Secret file | Git |
 |-------------|-----|

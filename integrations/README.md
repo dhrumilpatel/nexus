@@ -19,6 +19,8 @@
 
 Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
 
+**Sector infographic seeds:** PHOTONIC (40 names) and CYBER (21 names) from Lin @speculator_io decks — manual `px`/`mc`/`ytd` in `data/stocks.js`, pyramid layers in `data/sectors.js`; live Finnhub overwrites quotes on load.
+
 **ETF mode (Phase 2-ready):** Manual registry in `data/etfs.js` (`ETF_SECTORS`: AI, SPACE, MEMORY, PHOTONICS, SEMI, GREEN, COMM). Holdings tickers must exist in `data/stocks.js` (`S`) for live quotes + sector tags. UI: top nav `ETF`, center `views/view-etf.js`, right panel `renderRPEtf()`. Phase 2: `app/etf-api.js` (`NexusEtfApi`) — merge API payload before `renderCenter()`.
 
 ---

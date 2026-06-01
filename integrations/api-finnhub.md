@@ -39,4 +39,4 @@ Poll `NEXUS_FINNHUB_POLL_MS` (~60s); prior-close fallback when `c` missing; clic
 
 ## Limits
 
-60/min spaced sweep · 50 WS symbols · history → FMP (`api-fmp.md`). On-select cache ~5 min; no bulk prefetch.
+60/min spaced sweep · 50 WS symbols · history → FMP (`api-fmp.md`). On-select cache ~5 min; no bulk prefetch. Infographic seeds (PHOTONIC, CYBER) may include ADR/intl tickers — prior-close + seed fallback in `live-prices.js` when `/quote` misses.

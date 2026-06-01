@@ -2,7 +2,7 @@
 
 **Path:** `app/`, `data/`, `views/` next to `index.html` (inner `Nexus/` if repo is nested).
 
-Supply-chain dashboard: **AI, Space, Quantum, Photonics, Semi, Nuclear, Commodity** pyramids; **Dashboard** (Mcap, Finnhub sentiment, movers); **WHEEL** (YTD × P/E, cap-weight index). Vercel static app.
+Supply-chain dashboard: **AI, Space, Quantum, Photonics, Cyber, Semi, Nuclear, Commodity** pyramids; **Dashboard** (Mcap, Finnhub sentiment, movers); **WHEEL** (YTD × P/E, cap-weight index). Vercel static app.
 
 | Feature | Notes |
 |---------|--------|
