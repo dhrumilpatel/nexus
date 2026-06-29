@@ -11,9 +11,10 @@ alwaysApply: true
 - **Branches:** `fix/` · `feature/` · `poc/` · `docs/` by scope
 - **ETF mode (merged #8):** `NAV_MODE=etf` · `data/etfs.js` · `views/view-etf.js` · `app/etf-api.js`
 - **ETF data (merged #9):** infographic seeds — DRAM, LYTE, EUV, MARS, Humanoid, Green, Tema · `data/stocks.js`
-- **PHOTONIC sector:** 40-name pyramid seed (Lin @speculator_io · May 2026) · `data/sectors.js` + `data/stocks.js`
+- **PHOTONIC sector:** 41-name pyramid seed (Lin @speculator_io · Jun 2026) · `data/sectors.js` + `data/stocks.js`
 - **CYBER sector:** 21-name pyramid seed (Lin @speculator_io · May 2026) · `data/sectors.js` + `data/stocks.js`
 - **ROBOTICS sector:** 38-name pyramid seed (Lin @speculator_io · Jun 2026) · `data/sectors.js` + `data/stocks.js`
+- **AI_INFRA tag:** 44-name Lin Jun 2026 AI Infrastructure sheet · `tags:['AI_INFRA']` on `data/stocks.js`
 - **Infra metadata:** `data/taxonomy.js` + optional `meta{}` on stocks · pilot NVDA/MU/ANET/CRWD… · `app/metadata.js` right panel
 - **Sticker list:** `data/stocks.js` → `S` + `tags[]` for sector mapping
 - **Deploy:** Vercel static · `vercel.json` `outputDirectory: "."`

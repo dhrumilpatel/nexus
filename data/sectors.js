@@ -30,9 +30,9 @@ const PYRAMIDS={
     {id:'instruments',name:'Control & Instrumentation',theme:'Cryogenics monopoly · Ultra-pure materials · Single source',stocks:['OXIG'],w:100,up:true},
   ]},
 
-  PHOTONIC:{type:'pyramid',label_full:'PHOTONICS · POWERING THE FUTURE WITH LIGHT',layers:[
-    {id:'materials',name:'Photonic materials & substrates',theme:'Glass & ceramics · nonlinear optics · compound substrates · high-purity chemistry',stocks:['IQE','AXTI','GLW','LWLG','WOLF','TECK'],w:68},
-    {id:'packaging',name:'Packaging & assembly',theme:'Advanced optical modules · OSAT · foundry for photonic & RF SOI',stocks:['FN','AMKR','GFS','SIVE','TSEM','UMC','ASX'],w:74},
+  PHOTONIC:{type:'pyramid',label_full:'PHOTONICS · LIN JUN 2026',layers:[
+    {id:'materials',name:'Photonic materials & substrates',theme:'Glass & ceramics · nonlinear optics · compound substrates · high-purity chemistry',stocks:['IQE','SOI','AXTI','LWLG','WOLF','TECK'],w:68},
+    {id:'packaging',name:'Packaging & assembly',theme:'Advanced optical modules · OSAT · foundry for photonic & RF SOI',stocks:['FN','AMKR','GFS','SIVE','TSEM','UMC','ASX','SANM'],w:74},
     {id:'lasers',name:'Lasers & light sources',theme:'Datacom lasers · industrial & scientific · fiber amplifiers · diode & custom solutions',stocks:['LITE','COHR','LASR','LPTH','AIXA','HIMX'],w:80},
     {id:'optical',name:'Optical components & transceivers',theme:'Subsystems · fiber connectivity · pluggable optics',stocks:['AAOI','OPTX','VIAV','SMTC','ALRIB','ALMU'],w:86},
     {id:'pics',name:'Photonic integrated circuits',theme:'Silicon photonics · PIC platforms · optical I/O & custom networking silicon',stocks:['MRVL','CRDO','POET','MTSI','STM','XFAB'],w:92},
