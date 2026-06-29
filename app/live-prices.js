@@ -302,6 +302,8 @@
       subs[1].textContent=`Breadth ${nUp}/${stks.length} advancing${tag}`;
       subs[1].className='dash-card-sub dash-card-sub-stack '+(nUp>=stks.length/2?'up':'dn');
     }
+    const rotEl=document.getElementById('dash-rot-strip');
+    if(rotEl&&typeof dashRotationStripHtml==='function') rotEl.innerHTML=dashRotationStripHtml();
   }
 
   function finishSweepStatus(liveCount,closeCount,updated){
