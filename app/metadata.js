@@ -67,3 +67,85 @@ function buildInfraMetaHtml(st){
     ${regimeRows?`<div class="rp-sec-t" style="margin-top:8px">Regime sensitivity</div><div class="rp-regime">${regimeRows}</div>`:''}
   </div>`;
 }
+
+function capWeightYtdRows(rows){
+  const mcTot=rows.reduce((a,s)=>a+(s.mc||0),0);
+  if(mcTot<=0) return rows.reduce((a,s)=>a+(s.ytd||0),0)/(rows.length||1);
+  return rows.reduce((a,s)=>a+((s.mc||0)/mcTot)*(s.ytd||0),0);
+}
+
+function stocksWithMeta(stks){
+  return stks.filter(s=>s&&s.meta);
+}
+
+function aggregateByTheme(stks){
+  const map={};
+  stocksWithMeta(stks).forEach(s=>{
+    const t=s.meta.theme||'Other';
+    if(!map[t]) map[t]={theme:t,rows:[]};
+    map[t].rows.push(s);
+  });
+  return Object.values(map).map(g=>({
+    theme:g.theme,
+    ytd:capWeightYtdRows(g.rows),
+    mc:g.rows.reduce((a,s)=>a+(s.mc||0),0),
+    count:g.rows.length
+  })).sort((a,b)=>b.ytd-a.ytd);
+}
+
+function aggregateBottlenecks(stks){
+  const map={};
+  stocksWithMeta(stks).forEach(s=>{
+    (s.meta.bottlenecks||[]).forEach(b=>{
+      if(!map[b]) map[b]=[];
+      map[b].push(s);
+    });
+  });
+  return Object.keys(map).map(b=>({
+    bottleneck:b,
+    ytd:capWeightYtdRows(map[b]),
+    count:map[b].length
+  })).sort((a,b)=>b.ytd-a.ytd);
+}
+
+function leaderEnablerSpread(stks){
+  const map={};
+  stocksWithMeta(stks).forEach(s=>{
+    const r=s.meta.marketRole||'Other';
+    if(!map[r]) map[r]=[];
+    map[r].push(s);
+  });
+  return Object.keys(map).map(r=>({
+    role:r,
+    ytd:capWeightYtdRows(map[r]),
+    count:map[r].length
+  })).sort((a,b)=>b.ytd-a.ytd);
+}
+
+const REGIME_KEY_MAP={
+  'Training':'training',
+  'Inference':'inference',
+  'Enterprise AI':'enterprise',
+  'Robotics':'robotics',
+  'Edge AI':'edge'
+};
+
+function regimeScore(stks,regimeLabel){
+  const key=REGIME_KEY_MAP[regimeLabel]||String(regimeLabel||'').toLowerCase();
+  let mcTot=0,scoreSum=0;
+  const metaStks=stocksWithMeta(stks);
+  metaStks.forEach(s=>{
+    const rs=s.meta.regimeSensitivity;
+    if(!rs||rs[key]==null) return;
+    const mc=s.mc||0;
+    if(mc<=0) return;
+    mcTot+=mc;
+    scoreSum+=mc*(Number(rs[key])||0);
+  });
+  const tickers=metaStks
+    .filter(s=>s.meta.regimeSensitivity&&s.meta.regimeSensitivity[key]!=null)
+    .map(s=>({tk:s.tk,n:s.n,score:Number(s.meta.regimeSensitivity[key])||0}))
+    .sort((a,b)=>b.score-a.score)
+    .slice(0,3);
+  return{score:mcTot>0?scoreSum/mcTot:null,tickers,count:metaStks.length};
+}

@@ -134,3 +134,64 @@ function sectorSummary(sec){
     avgCh:stks.reduce((a,s)=>a+s.ch,0)/(stks.length||1)
   };
 }
+
+function capWeightAvg(stks,field,mcTot){
+  if(mcTot==null) mcTot=stks.reduce((a,s)=>a+(s.mc||0),0);
+  if(mcTot<=0) return null;
+  return stks.reduce((a,s)=>a+((s.mc||0)/mcTot)*(s[field]||0),0);
+}
+
+function mcapTier(mc){
+  if(mc>=200) return 'mega';
+  if(mc>=10) return 'large';
+  if(mc>=2) return 'mid';
+  if(mc>=0.3) return 'small';
+  return 'micro';
+}
+
+function concentrationMetrics(stks){
+  const mcTot=stks.reduce((a,s)=>a+(s.mc||0),0);
+  const withMc=[...stks].filter(s=>(s.mc||0)>0).sort((a,b)=>b.mc-a.mc);
+  const top5Mc=withMc.slice(0,5).reduce((a,s)=>a+s.mc,0);
+  const megaMc=withMc.filter(s=>s.mc>=200).reduce((a,s)=>a+s.mc,0);
+  const tiers={mega:{n:0,up:0},large:{n:0,up:0},mid:{n:0,up:0},small:{n:0,up:0},micro:{n:0,up:0}};
+  withMc.forEach(s=>{
+    const t=mcapTier(s.mc);
+    tiers[t].n++;
+    if((s.ch||0)>0) tiers[t].up++;
+  });
+  const chVals=withMc.map(s=>s.ch||0).sort((a,b)=>a-b);
+  const medianCh=chVals.length?chVals[Math.floor(chVals.length/2)]:0;
+  const capWtdCh=capWeightAvg(withMc,'ch',mcTot);
+  return{
+    mcTot,
+    top5Share:mcTot>0?top5Mc/mcTot:0,
+    megaShare:mcTot>0?megaMc/mcTot:0,
+    tiers,
+    medianCh,
+    capWtdCh,
+    spread:capWtdCh!=null?capWtdCh-medianCh:null
+  };
+}
+
+function valuationMetrics(stks){
+  const withPe=stks.filter(s=>(s.mc||0)>0&&s.pe&&s.pe>0);
+  if(!withPe.length) return null;
+  const peMcTot=withPe.reduce((a,s)=>a+s.mc,0);
+  const sortedPe=[...withPe].sort((a,b)=>a.pe-b.pe);
+  let cum=0,medianPe=null;
+  for(const s of sortedPe){
+    cum+=s.mc;
+    if(cum>=peMcTot/2){ medianPe=s.pe; break; }
+  }
+  const top5=[...stks].filter(s=>(s.mc||0)>0).sort((a,b)=>b.mc-a.mc).slice(0,5);
+  const top5Tk=new Set(top5.map(s=>s.tk));
+  const top5Pe=top5.filter(s=>s.pe>0);
+  const restPe=withPe.filter(s=>!top5Tk.has(s.tk));
+  const top5PeAvg=top5Pe.length?top5Pe.reduce((a,s)=>a+s.pe,0)/top5Pe.length:null;
+  const restMc=restPe.reduce((a,s)=>a+s.mc,0);
+  const restPeAvg=restMc>0?restPe.reduce((a,s)=>a+(s.mc/restMc)*s.pe,0):null;
+  const avgYtd=stks.reduce((a,s)=>a+(s.ytd||0),0)/(stks.length||1);
+  const stretched=top5PeAvg&&medianPe&&top5PeAvg>1.5*medianPe&&avgYtd>0;
+  return{medianPe,top5PeAvg,restPeAvg,stretched,avgYtd};
+}

@@ -326,6 +326,131 @@ function dashUpdateSentSub(text){
   if(el) el.textContent=text;
 }
 
+function dashRegimeMetric(){
+  try{
+    const m=sessionStorage.getItem('nexus_dash_regime');
+    if(m&&typeof INFRA_REGIMES!=='undefined'&&INFRA_REGIMES.includes(m)) return m;
+  }catch(e){}
+  return typeof INFRA_REGIMES!=='undefined'?INFRA_REGIMES[0]:'Training';
+}
+
+function setDashRegime(label,btn){
+  try{ sessionStorage.setItem('nexus_dash_regime',label); }catch(e){}
+  document.querySelectorAll('.dash-regime-tog').forEach(b=>b.classList.remove('on'));
+  btn?.classList.add('on');
+  const host=document.getElementById('dash-regime-body');
+  if(host&&typeof getActiveStocks==='function'){
+    const stks=getActiveStocks().map(tk=>({...S[tk],tk})).filter(s=>s&&s.tk);
+    host.innerHTML=dashRegimeBodyHtml(stks,label);
+  }
+}
+
+function dashSectorRotationRows(){
+  if(typeof PYRAMIDS==='undefined'||typeof getAllStocks!=='function') return [];
+  return Object.keys(PYRAMIDS).map(sec=>{
+    const ss=getAllStocks(sec).map(tk=>S[tk]).filter(Boolean);
+    const mc=ss.reduce((a,s)=>a+(s.mc||0),0);
+    const today=dashCapWtdCh(ss,mc);
+    const ytd=mc>0
+      ?ss.reduce((a,s)=>a+((s.mc||0)/mc)*(s.ytd||0),0)
+      :ss.reduce((a,s)=>a+(s.ytd||0),0)/(ss.length||1);
+    return{sec,label:(typeof SEC_LABELS!=='undefined'?SEC_LABELS[sec]:null)||sec,today,ytd,mc,color:secColor(sec)};
+  }).filter(r=>r.mc>0);
+}
+
+function dashRotationStripHtml(){
+  const rows=dashSectorRotationRows();
+  if(!rows.length) return '<div class="dash-dim">No sector data</div>';
+  const bestToday=[...rows].sort((a,b)=>(b.today||0)-(a.today||0))[0];
+  const worstToday=[...rows].sort((a,b)=>(a.today||0)-(b.today||0))[0];
+  return rows.map(r=>{
+    const on=typeof CUR!=='undefined'&&r.sec===CUR?' dash-rot-pill--on':'';
+    const hi=r.sec===bestToday?.sec?' dash-rot-pill--best':'';
+    const lo=r.sec===worstToday?.sec&&worstToday?.sec!==bestToday?.sec?' dash-rot-pill--worst':'';
+    const tDisp=r.today!=null?pct(r.today,2):'—';
+    const yDisp=fmtYTD(r.ytd);
+    const tCls=(r.today||0)>=0?'up':'dn';
+    return`<button type="button" class="dash-rot-pill${on}${hi}${lo}" style="--rot-c:${r.color}" onclick="setSector('${r.sec}')">
+      <span class="dash-rot-lbl">${r.label}</span>
+      <span class="dash-rot-metrics"><span class="${tCls}">${tDisp}</span><span class="dash-rot-sep">·</span><span>${yDisp}</span></span>
+    </button>`;
+  }).join('');
+}
+
+function dashBarListHtml(items,nameKey,emptyMsg){
+  if(!items||!items.length) return `<div class="dash-dim">${emptyMsg||'—'}</div>`;
+  const yMax=Math.max(1e-6,...items.map(s=>Math.abs(s.ytd||0)));
+  return items.slice(0,6).map(s=>{
+    const v=s.ytd||0;
+    const w=Math.min(100,(Math.abs(v)/yMax)*100);
+    const u=v>=0;
+    return`<div class="dash-seg-row"><span class="dash-seg-nm">${s[nameKey]}</span><span class="dash-seg-ytd ${u?'up':'dn'}">${fmtYTD(v)}</span><div class="dash-seg-bar"><div class="dash-seg-fill ${u?'up':'dn'}" style="width:${w.toFixed(0)}%"></div></div></div>`;
+  }).join('');
+}
+
+function dashConcentrationHtml(stks,mcTot){
+  const cm=concentrationMetrics(stks);
+  const dom=dashDominancePair(stks,mcTot);
+  const tierLines=DASH_TIER_DEFS.map(t=>{
+    const b=cm.tiers[t.key];
+    if(!b||!b.n) return '';
+    return`<div class="dash-inst-kv"><span class="dash-inst-k">${t.label.split('(')[0].trim()}</span><span class="dash-inst-v">${b.up}/${b.n} up</span></div>`;
+  }).filter(Boolean).join('');
+  const spreadDisp=cm.spread!=null?pct(cm.spread,2):'—';
+  const spreadCls=(cm.spread||0)>=0?'up':'dn';
+  return`<div class="dash-inst-metrics">
+    <div class="dash-inst-kv"><span class="dash-inst-k">Top 5 share</span><span class="dash-inst-v acc">${(cm.top5Share*100).toFixed(1)}%</span></div>
+    <div class="dash-inst-kv"><span class="dash-inst-k">Mega-cap share</span><span class="dash-inst-v">${(cm.megaShare*100).toFixed(1)}%</span></div>
+    <div class="dash-inst-kv"><span class="dash-inst-k">Cap-wtd vs median</span><span class="dash-inst-v ${spreadCls}">${spreadDisp}</span></div>
+    ${tierLines}
+  </div>
+  ${dom?dashDominanceTableHtml(dom.rows,dom.mcTot,dom.revTot,stks.length):''}`;
+}
+
+function dashValuationHtml(stks){
+  const vm=valuationMetrics(stks);
+  if(!vm) return '<div class="dash-dim">No P/E data in universe</div>';
+  const stretch=vm.stretched?'<span class="dash-inst-flag">STRETCHED</span>':'';
+  return`<div class="dash-inst-metrics">
+    <div class="dash-inst-kv"><span class="dash-inst-k">Cap-wtd median P/E</span><span class="dash-inst-v">${vm.medianPe?.toFixed(1)||'—'}</span></div>
+    <div class="dash-inst-kv"><span class="dash-inst-k">Top 5 avg P/E</span><span class="dash-inst-v">${vm.top5PeAvg?.toFixed(1)||'—'}</span></div>
+    <div class="dash-inst-kv"><span class="dash-inst-k">Rest avg P/E</span><span class="dash-inst-v">${vm.restPeAvg?.toFixed(1)||'—'}</span></div>
+    <div class="dash-inst-kv">${stretch}</div>
+  </div>`;
+}
+
+function dashRegimeBodyHtml(stks,regimeLabel){
+  const rs=regimeScore(stks,regimeLabel);
+  if(rs.score==null) return `<div class="dash-dim">No regime metadata (${rs.count||0} names)</div>`;
+  const tops=rs.tickers.map(t=>`<span class="dash-regime-tk" onclick="clickTileByTk('${t.tk}')">${t.tk} ${t.score}</span>`).join('');
+  return`<div class="dash-regime-score">${Math.round(rs.score)}</div>
+    <div class="dash-regime-sub">Cap-weight exposure · ${rs.count} meta names</div>
+    <div class="dash-regime-tops">${tops}</div>`;
+}
+
+function dashRegimeDialHtml(stks){
+  const regimes=typeof INFRA_REGIMES!=='undefined'?INFRA_REGIMES:['Training','Inference'];
+  const cur=dashRegimeMetric();
+  const togs=regimes.map(r=>{
+    const on=r===cur?' on':'';
+    return`<button type="button" class="dash-regime-tog${on}" onclick="setDashRegime('${r.replace(/'/g,"\\'")}',this)">${r.toUpperCase()}</button>`;
+  }).join('');
+  return`<div class="dash-regime-togs">${togs}</div><div id="dash-regime-body" class="dash-regime-body">${dashRegimeBodyHtml(stks,cur)}</div>`;
+}
+
+function dashMetadataRowHtml(stks){
+  const metaN=stocksWithMeta(stks).length;
+  const foot=metaN<stks.length?`<div class="dash-inst-foot">${metaN}/${stks.length} names with metadata</div>`:'';
+  const themes=aggregateByTheme(stks);
+  const bn=aggregateBottlenecks(stks);
+  const roles=leaderEnablerSpread(stks);
+  return`<div class="dash-inst-meta-grid">
+    <div class="dash-inst-meta-col"><div class="dash-ph">Theme YTD</div>${dashBarListHtml(themes,'theme','No theme metadata')}</div>
+    <div class="dash-inst-meta-col"><div class="dash-ph">Bottleneck baskets</div>${dashBarListHtml(bn,'bottleneck','No bottleneck tags')}</div>
+    <div class="dash-inst-meta-col"><div class="dash-ph">Market role</div>${dashBarListHtml(roles,'role','No role metadata')}</div>
+  </div>${foot}`;
+}
+
 function renderDashboardView(el){
   const p=getCurrentP();
   if(!p){el.innerHTML='<div class="dash-empty">No universe</div>';return;}
@@ -363,6 +488,12 @@ function renderDashboardView(el){
     ?`<span class="dash-card-sub ${cwCh>=0?'up':'dn'}">Cap-wtd today ${pct(cwCh,2)}</span><span class="dash-card-sub ${nUp>=stks.length/2?'up':'dn'} dash-card-sub-stack">Breadth ${nUp}/${stks.length} advancing${liveOn?' · LIVE':''}</span>`
     :`<span class="dash-card-sub dash-dim">Cap-wtd today —</span><span class="dash-card-sub dash-card-sub-stack">Breadth ${nUp}/${stks.length} advancing</span>`;
 
+  const instConc=dashConcentrationHtml(stks,mcTot);
+  const instVal=dashValuationHtml(stks);
+  const instMeta=dashMetadataRowHtml(stks);
+  const instRegime=dashRegimeDialHtml(stks);
+  const rotStrip=dashRotationStripHtml();
+
   const wrap=document.createElement('div');
   wrap.className='dash-wrap';
   wrap.innerHTML=`
@@ -370,11 +501,27 @@ function renderDashboardView(el){
       <div class="dash-title">Dashboard</div>
       <div class="dash-sub">${label} · ${stks.length} names · cap-weight index</div>
     </div>
-    <div class="dash-kpi-cards">
+    <div class="dash-panel dash-inst-rot">
+      <div class="dash-ph">Sector rotation · cap-weight today · YTD</div>
+      <div class="dash-rot-strip" id="dash-rot-strip">${rotStrip}</div>
+    </div>
+    <div class="dash-kpi-cards dash-kpi-cards--4">
       <div class="dash-card dash-card-mcap">
         <div class="dash-card-lbl">TOTAL MARKET CAP</div>
         <div class="dash-card-val dash-card-val-hero acc">$${fmtB(mcTot)}</div>
         ${kpiSubMcap}
+      </div>
+      <div class="dash-card dash-card-inst">
+        <div class="dash-card-lbl">CONCENTRATION</div>
+        ${instConc}
+      </div>
+      <div class="dash-card dash-card-inst">
+        <div class="dash-card-lbl">VALUATION</div>
+        ${instVal}
+      </div>
+      <div class="dash-card dash-card-inst dash-card-regime">
+        <div class="dash-card-lbl">REGIME DIAL</div>
+        ${instRegime}
       </div>
       <div class="dash-card dash-card-sent" id="dash-sent-card" style="display:none">
         <div class="dash-card-lbl">MARKET SENTIMENT</div>
@@ -385,6 +532,9 @@ function renderDashboardView(el){
         ${dashMoverKpiRow(topG,'up')}
         ${dashMoverKpiRow(topL,'dn')}
       </div>
+    </div>
+    <div class="dash-panel dash-inst-meta">
+      ${instMeta}
     </div>
     <div class="dash-row-mid">
       <div class="dash-panel dash-panel-mid">
