@@ -330,6 +330,12 @@ header{display:flex;align-items:center;gap:10px;padding:0 14px;height:44px;backg
 .nc-status{font-size:var(--f12);font-family:'Barlow',sans-serif}
 .nc-on{color:var(--up)}.nc-off{color:var(--muted)}
 .kwd-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:5px}
+.rp-reg-row{display:flex;align-items:center;gap:8px;margin:5px 0}
+.rp-reg-lbl{flex:0 0 108px;font-size:var(--f11);color:var(--dim)}
+.rp-reg-bar{flex:1;height:6px;background:var(--b1);border-radius:3px;overflow:hidden}
+.rp-reg-fill{height:100%;background:var(--acc);border-radius:3px}
+.rp-reg-pct{flex:0 0 28px;font-size:var(--f11);color:var(--txt2);text-align:right}
+.rp-infra{margin:10px 0 4px;padding-top:8px;border-top:1px solid var(--b0)}
 .kwd{padding:2px 6px;font-family:'Barlow Condensed',sans-serif;font-size:var(--f11);font-weight:600;background:rgba(61,154,255,.08);border:1px solid rgba(61,154,255,.18);color:var(--acc);border-radius:2px}
 
 /* MODAL */

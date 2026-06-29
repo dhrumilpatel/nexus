@@ -69,9 +69,15 @@ CLS: { n:'Celestica Inc', px:'$82.40', ch:1.24, mc:12.4, ms:'$12.4B',
 TICKER: {
   n:'Name', px:'$000.00', ch:0.00, mc:000, ms:'$000B',
   pe:00.0, eps:0.00, be:0.00, vl:'00M', av:'00M', hi:'$000', lo:'$000', op:'$000',
-  rt:'Strong Buy', rs:[sb,b,h,s,ss], an:00, tags:['TAG'], ytd:00, rev:00, net:00
+  rt:'Strong Buy', rs:[sb,b,h,s,ss], an:00, tags:['TAG'], ytd:00, rev:00, net:00,
+  meta:{ theme:'Compute', subtheme:'GPU', narratives:['AI Training'], bottlenecks:['HBM'],
+    marketRole:'Leader', regimeSensitivity:{ training:95, inference:88 } }
 }
 ```
+
+**Infra theme vs narrative pyramid:** `meta.theme` / `meta.subtheme` follow [`data/taxonomy.js`](data/taxonomy.js) (PDF canonical model). `THEMES_DATA` in `themes.js` is a **narrative pyramid** (e.g. NVIDIA ecosystem) — different concept, same render engine.
+
+**Taxonomy:** `INFRA_THEMES`, `INFRA_SUBTHEMES`, `INFRA_NARRATIVES`, `INFRA_BOTTLENECKS`, `INFRA_REGIMES` in `taxonomy.js`. Helpers: `app/metadata.js` (`getInfraMeta`, `buildInfraMetaHtml`).
 
 ### Pyramid (`sectors.js`)
 
@@ -152,10 +158,12 @@ Deploy: [`deployment.md`](deployment.md). Repo: [dhrumilpatel/nexus](https://git
 ```html
 <!-- Data -->
 <script src="data/stocks.js"></script>
+<script src="data/taxonomy.js"></script>
 <script src="data/sectors.js"></script>
 <script src="data/themes.js"></script>
 <!-- Utils + state + Finnhub -->
 <script src="app/utils.js"></script>
+<script src="app/metadata.js"></script>
 <script src="app/state.js"></script>
 <script src="app/finnhub-config.js"></script>
 <script src="app/finnhub-key.js"></script>

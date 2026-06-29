@@ -38,6 +38,7 @@ cache/ · scripts/ · integrations/ · data/ · views/ · app/
 |------------|------|
 | Overview | `README.md` |
 | Schemas / render / script order | `AGENT-GUIDE.md` |
+| Canonical infra metadata (theme/subtheme) | `data/taxonomy.js`, `app/metadata.js`, `AI Infrastructure Intelligence.pdf` |
 | Session snapshot | `journal.md` |
 | Deploy Vercel + live prices | `deployment.md` |
 | Branch, commit, open PR | `.cursor/skills/git-pr-workflow/SKILL.md` |

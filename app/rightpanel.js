@@ -302,7 +302,7 @@ function renderRPStock(){
     <div class="rp-px">${st.px}</div>
     <div class="rp-chrow"><span class="rp-ch ${u?'up':'dn'}">${pct(st.ch)}</span><span class="rp-co">${st.n}</span></div>
     <div class="rp-tags">${myLayers}${myTags}</div>
-  </div>`;
+  </div>${buildInfraMetaHtml(st)}`;
 
   let body='';
   if(RPTAB==='chart'){
