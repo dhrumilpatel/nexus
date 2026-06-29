@@ -47,6 +47,14 @@ const PYRAMIDS={
     {id:'gov',name:'Gov & professional services',theme:'Federal cyber spend · consulting · critical infrastructure',stocks:['BAH','LDOS','PSN'],w:100,up:true},
   ]},
 
+  ROBOTICS:{type:'pyramid',label_full:'ROBOTICS · LIN JUN 2026',layers:[
+    {id:'autonomy',name:'Autonomy & logistics',theme:'Warehouse AMRs · delivery bots · AV stacks · humanoids',stocks:['SYM','PATH','SERV','RRR','AUR','TSLA','XPEV'],w:68},
+    {id:'industrial',name:'Industrial automation',theme:'Factory robots · motion control · machine vision · test',stocks:['ROK','ABB','HON','ZBRA','TER','CGNX','OUST'],w:74},
+    {id:'medical',name:'Medical & surgical robotics',theme:'Surgical systems · med devices · robotic surgery',stocks:['ISRG','SYK','MDT','PRCT'],w:80},
+    {id:'defense',name:'Defense & marine robotics',theme:'Drones · subsea · aerospace platforms',stocks:['LMT','GD','NOC','BA','KTOS','OII'],w:86},
+    {id:'components',name:'Compute, power & components',theme:'AI edge · batteries · sensors · precision motion',stocks:['NVDA','AMZN','INDI','AMBA','INVZ','VPG','AMBQ','AMPX','KULR','LECO','SLDP','QS','FLNC','KRKNF'],w:100,up:true},
+  ]},
+
   SEMICONDUCTOR:{type:'pyramid',label_full:'CRITICAL AI BOTTLENECK · SEMICONDUCTORS',layers:[
     {id:'compute',name:'Compute & CPU IP',theme:'GPUs · AI accelerators · x86 turnaround · ARM licensing',stocks:['AMD','INTC','ARM'],w:68},
     {id:'connectivity',name:'Data infrastructure & mixed-signal',theme:'Cloud networking · RF · analog & optical links',stocks:['MRVL','MXL','MTSI'],w:74},
