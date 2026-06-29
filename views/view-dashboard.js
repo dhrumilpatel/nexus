@@ -303,9 +303,9 @@ function dashHasAnalystData(agg){
 
 function dashSetSentimentVisible(show){
   const card=document.getElementById('dash-sent-card');
-  const kpi=document.querySelector('.dash-kpi-cards');
+  const legacy=document.getElementById('dash-legacy-kpi');
   if(card) card.style.display=show?'':'none';
-  if(kpi) kpi.classList.toggle('dash-kpi-cards--2',!show);
+  if(legacy) legacy.classList.toggle('dash-legacy-kpi--solo',!show);
 }
 
 function dashUpdateGauge(score,fromApi,limited){
@@ -388,9 +388,8 @@ function dashBarListHtml(items,nameKey,emptyMsg){
   }).join('');
 }
 
-function dashConcentrationHtml(stks,mcTot){
+function dashConcentrationHtml(stks){
   const cm=concentrationMetrics(stks);
-  const dom=dashDominancePair(stks,mcTot);
   const tierLines=DASH_TIER_DEFS.map(t=>{
     const b=cm.tiers[t.key];
     if(!b||!b.n) return '';
@@ -403,8 +402,13 @@ function dashConcentrationHtml(stks,mcTot){
     <div class="dash-inst-kv"><span class="dash-inst-k">Mega-cap share</span><span class="dash-inst-v">${(cm.megaShare*100).toFixed(1)}%</span></div>
     <div class="dash-inst-kv"><span class="dash-inst-k">Cap-wtd vs median</span><span class="dash-inst-v ${spreadCls}">${spreadDisp}</span></div>
     ${tierLines}
-  </div>
-  ${dom?dashDominanceTableHtml(dom.rows,dom.mcTot,dom.revTot,stks.length):''}`;
+  </div>`;
+}
+
+function dashDominancePanelHtml(stks,mcTot){
+  const dom=dashDominancePair(stks,mcTot);
+  if(!dom) return '';
+  return`<div class="dash-ph">Mcap &amp; revenue dominance</div>${dashDominanceTableHtml(dom.rows,dom.mcTot,dom.revTot,stks.length)}`;
 }
 
 function dashValuationHtml(stks){
@@ -445,9 +449,9 @@ function dashMetadataRowHtml(stks){
   const bn=aggregateBottlenecks(stks);
   const roles=leaderEnablerSpread(stks);
   return`<div class="dash-inst-meta-grid">
-    <div class="dash-inst-meta-col"><div class="dash-ph">Theme YTD</div>${dashBarListHtml(themes,'theme','No theme metadata')}</div>
-    <div class="dash-inst-meta-col"><div class="dash-ph">Bottleneck baskets</div>${dashBarListHtml(bn,'bottleneck','No bottleneck tags')}</div>
-    <div class="dash-inst-meta-col"><div class="dash-ph">Market role</div>${dashBarListHtml(roles,'role','No role metadata')}</div>
+    <div class="dash-inst-meta-col"><div class="dash-ph">Theme YTD</div><div class="dash-seg-list">${dashBarListHtml(themes,'theme','No theme metadata')}</div></div>
+    <div class="dash-inst-meta-col"><div class="dash-ph">Bottleneck baskets</div><div class="dash-seg-list">${dashBarListHtml(bn,'bottleneck','No bottleneck tags')}</div></div>
+    <div class="dash-inst-meta-col"><div class="dash-ph">Market role</div><div class="dash-seg-list">${dashBarListHtml(roles,'role','No role metadata')}</div></div>
   </div>${foot}`;
 }
 
@@ -488,10 +492,11 @@ function renderDashboardView(el){
     ?`<span class="dash-card-sub ${cwCh>=0?'up':'dn'}">Cap-wtd today ${pct(cwCh,2)}</span><span class="dash-card-sub ${nUp>=stks.length/2?'up':'dn'} dash-card-sub-stack">Breadth ${nUp}/${stks.length} advancing${liveOn?' · LIVE':''}</span>`
     :`<span class="dash-card-sub dash-dim">Cap-wtd today —</span><span class="dash-card-sub dash-card-sub-stack">Breadth ${nUp}/${stks.length} advancing</span>`;
 
-  const instConc=dashConcentrationHtml(stks,mcTot);
+  const instConc=dashConcentrationHtml(stks);
   const instVal=dashValuationHtml(stks);
   const instMeta=dashMetadataRowHtml(stks);
   const instRegime=dashRegimeDialHtml(stks);
+  const instDom=dashDominancePanelHtml(stks,mcTot);
   const rotStrip=dashRotationStripHtml();
 
   const wrap=document.createElement('div');
@@ -505,7 +510,7 @@ function renderDashboardView(el){
       <div class="dash-ph">Sector rotation · cap-weight today · YTD</div>
       <div class="dash-rot-strip" id="dash-rot-strip">${rotStrip}</div>
     </div>
-    <div class="dash-kpi-cards dash-kpi-cards--4">
+    <div class="dash-inst-kpi-row">
       <div class="dash-card dash-card-mcap">
         <div class="dash-card-lbl">TOTAL MARKET CAP</div>
         <div class="dash-card-val dash-card-val-hero acc">$${fmtB(mcTot)}</div>
@@ -523,6 +528,12 @@ function renderDashboardView(el){
         <div class="dash-card-lbl">REGIME DIAL</div>
         ${instRegime}
       </div>
+    </div>
+    ${instDom?`<div class="dash-panel dash-inst-dom">${instDom}</div>`:''}
+    <div class="dash-panel dash-inst-meta">
+      ${instMeta}
+    </div>
+    <div class="dash-kpi-cards dash-kpi-cards--2 dash-legacy-kpi dash-legacy-kpi--solo" id="dash-legacy-kpi">
       <div class="dash-card dash-card-sent" id="dash-sent-card" style="display:none">
         <div class="dash-card-lbl">MARKET SENTIMENT</div>
         <div id="dash-gauge" class="dash-gauge-host dash-gauge-host--kpi"></div>
@@ -532,9 +543,6 @@ function renderDashboardView(el){
         ${dashMoverKpiRow(topG,'up')}
         ${dashMoverKpiRow(topL,'dn')}
       </div>
-    </div>
-    <div class="dash-panel dash-inst-meta">
-      ${instMeta}
     </div>
     <div class="dash-row-mid">
       <div class="dash-panel dash-panel-mid">
