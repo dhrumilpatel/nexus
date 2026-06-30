@@ -31,11 +31,58 @@
     return getFinnhubSymbol(tk);
   }
 
-  function formatPx(n,tk){
-    const ccy=tk&&typeof S!=='undefined'&&S[tk]?.ccy;
-    const fmt=Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-    if(ccy==='SEK') return 'SEK '+fmt;
-    return '$'+fmt;
+  function formatPx(n){
+    return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  const FX_CACHE_KEY='nexus_sek_usd_v1';
+  const FX_TTL_MS=3600000;
+  let sekUsdRate=null;
+
+  function loadSekUsdFromCache(){
+    try{
+      const raw=sessionStorage.getItem(FX_CACHE_KEY);
+      if(!raw) return;
+      const o=JSON.parse(raw);
+      if(o&&o.rate>0&&Date.now()-o.at<FX_TTL_MS) sekUsdRate=o.rate;
+    }catch(e){}
+  }
+
+  function persistSekUsd(rate){
+    sekUsdRate=rate;
+    try{ sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify({rate,at:Date.now()})); }catch(e){}
+  }
+
+  function stockNeedsSekFx(tk){
+    const st=typeof S!=='undefined'?S[tk]:null;
+    return !!(st&&(st.ccy==='SEK'||st.yahooSym));
+  }
+
+  function ensureSekUsdRate(){
+    if(sekUsdRate>0) return Promise.resolve(sekUsdRate);
+    loadSekUsdFromCache();
+    if(sekUsdRate>0) return Promise.resolve(sekUsdRate);
+    if(!window.NexusYahooApi) return Promise.resolve(null);
+    return NexusYahooApi.fetchQuote('SEKUSD=X').then(j=>{
+      const r=j&&j.c>0?Number(j.c):null;
+      if(r) persistSekUsd(r);
+      return sekUsdRate;
+    });
+  }
+
+  function toUsdQuote(tk,j){
+    if(!j||!stockNeedsSekFx(tk)||!sekUsdRate) return j;
+    const fx=sekUsdRate;
+    const c=j.c!=null?Number(j.c)*fx:null;
+    const pc=j.pc!=null?Number(j.pc)*fx:null;
+    const dp=j.dp!=null?Number(j.dp):null;
+    return{c,pc,dp};
+  }
+
+  function quotePollActive(){
+    if(finnhubActive()) return true;
+    if(!window.NexusYahooApi||typeof getActiveStocks!=='function') return false;
+    return getActiveStocks().some(tk=>stockNeedsSekFx(tk));
   }
 
   function loadPersistedQuoteCache(){
@@ -218,7 +265,7 @@
     const st=S[tk];
     if(!st||!c||c<=0) return false;
     scaleMcapFromPrice(tk,c);
-    st.px=formatPx(c,tk);
+    st.px=formatPx(c);
     if(typeof dp==='number'&&!Number.isNaN(dp)) st.ch=dp;
     else if(pc&&pc>0) st.ch=(c-pc)/pc*100;
     st._quoteSource=source;
@@ -232,7 +279,7 @@
     const st=S[tk];
     if(!st||!pc||pc<=0) return false;
     scaleMcapFromPrice(tk,pc);
-    st.px=formatPx(pc,tk);
+    st.px=formatPx(pc);
     st.ch=0;
     st._quoteSource=source;
     st._livePx=false;
@@ -319,7 +366,7 @@
   }
 
   function finishSweepStatus(liveCount,closeCount,updated){
-    if(!finnhubActive()){
+    if(!quotePollActive()){
       setLiveStatus('static');
       return;
     }
@@ -340,9 +387,13 @@
   function fetchQuote(tk){
     if(typeof S==='undefined'||!S[tk]) return Promise.resolve(false);
     const ySym=typeof getYahooSymbol==='function'?getYahooSymbol(tk):null;
-    if(ySym&&window.NexusYahooApi){
-      return NexusYahooApi.fetchQuote(ySym).then(j=>applyQuote(tk,j));
-    }
+    const needsFx=stockNeedsSekFx(tk);
+    const yahooFetch=()=>{
+      if(!ySym||!window.NexusYahooApi) return Promise.resolve(false);
+      const chain=needsFx?ensureSekUsdRate():Promise.resolve(sekUsdRate);
+      return chain.then(()=>NexusYahooApi.fetchQuote(ySym).then(j=>applyQuote(tk,toUsdQuote(tk,j))));
+    };
+    if(ySym) return yahooFetch();
     if(!finnhubActive()||!api()) return Promise.resolve(false);
     const sym=getFinnhubSymbol(tk);
     if(!sym) return Promise.resolve(false);
@@ -363,7 +414,7 @@
 
   async function runPollSweep(opts){
     opts=opts||{};
-    if(!finnhubActive()) return;
+    if(!quotePollActive()) return;
     if(pollBusy){
       pendingResweep=true;
       pendingResweepOpts=opts;
@@ -377,6 +428,7 @@
     const PRIORITY_N=8;
     let updated=0,liveCount=0,closeCount=0;
     try{
+      if(getActiveStocks().some(tk=>stockNeedsSekFx(tk))) await ensureSekUsdRate();
       const list=sortedActiveTickers();
       for(let i=0;i<list.length;i++){
         const result=await fetchQuote(list[i]);
@@ -437,7 +489,7 @@
       if(!tk||!S[tk]) return;
       const p=Number(t.p);
       scaleMcapFromPrice(tk,p);
-      S[tk].px=formatPx(p,tk);
+      S[tk].px=formatPx(p);
       S[tk]._quoteSource='live';
       S[tk]._livePx=true;
       hasEverLive=true;
@@ -462,12 +514,13 @@
   }
 
   loadPersistedQuoteCache();
+  loadSekUsdFromCache();
 
   window.NexusLivePrices={
     start(){
-      if(!finnhubActive()){
+      if(!quotePollActive()){
         setLiveStatus('static');
-        console.info('[Nexus] Finnhub: set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in finnhub-key.js');
+        console.info('[Nexus] Quotes: set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in finnhub-key.js');
         return;
       }
       window.NexusLivePrices.stop();

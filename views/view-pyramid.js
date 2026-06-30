@@ -1,7 +1,7 @@
 // NEXUS — Sankey pyramid view
 // Band row width = sqrt(layer MCap) mapped to 54–96% (tapered stack). Connectors bridge adjacent widths.
 // Stock tiles: fixed width (--py-tile-w in nexus.css); narrow bands scroll horizontally.
-// Reads: S, PYRAMIDS[CUR], SEL_STOCK, SEL_LAYER — all globals from data/state.
+// Reads: S, getCurrentP(), SEL_STOCK, SEL_LAYER — all globals from data/state.
 // Writes: to el only. Never modifies state.
 
 function calcSankeyWidths(layers){
@@ -24,9 +24,9 @@ function sankeyConnector(w1,w2,color){
 }
 
 function renderPyramidView(el){
-  const p=PYRAMIDS[CUR]; if(!p||!p.layers) return;
+  const p=getCurrentP(); if(!p||!p.layers) return;
   const widths=calcSankeyWidths(p.layers);
-  const color=secColor(CUR);
+  const color=getActiveColor();
   const navKey=NAV_MODE==='themes'?CUR_THEME:CUR;
   const wrap=document.createElement('div');
   wrap.className='sankey-wrap sec-'+navKey;

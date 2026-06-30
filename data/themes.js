@@ -22,8 +22,8 @@ const THEMES_DATA={
   },
   GIRISH:{
     type:'pyramid',
-    label:'Girish',
-    label_full:'GIRISH WATCHLIST',
+    label:'GIRISH',
+    label_full:'GIRISH',
     color:'#38bdf8',
     layers:[
       {id:'quantum',name:'Quantum',theme:'QPU hardware + quantum security',stocks:['IONQ','RGTI','QBTS','QUBT','ARQQ']},
