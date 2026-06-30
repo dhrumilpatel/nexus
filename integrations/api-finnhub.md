@@ -27,7 +27,7 @@ Poll `NEXUS_FINNHUB_POLL_MS` (~60s); prior-close fallback when `c` missing; clic
 
 ## WS (local)
 
-`getFinnhubSymbol(tk)` not `getTVSym` · ~50 symbol cap · REST fallback off-hours.
+`getFinnhubSymbol(tk)` not `getTVSym` · ~50 symbol cap · REST fallback off-hours. **Swedish / intl:** stocks with `yahooSym` poll `/api/yahoo`; `SEKUSD=X` FX converts quotes to USD for display and mcap scaling (`ccy:'SEK'` marks source only).
 
 ---
 

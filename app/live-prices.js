@@ -1,4 +1,4 @@
-// NEXUS — Live quotes via Finnhub (REST + optional WebSocket).
+// NEXUS — Live quotes via Finnhub (REST + optional WebSocket) + Yahoo fallback for intl.
 // Finnhub free tier: 60 REST calls/minute — we space /quote requests by REST_GAP_MS.
 // Price updates patch DOM only (data-nexus-tk) so the pyramid layout does not rebuild every tick.
 // Fallback: live c → prior close pc → session cache → stocks.js seed (unchanged).
@@ -23,8 +23,66 @@
 
   function pollMs(){ const n=+window.NEXUS_FINNHUB_POLL_MS; return n>=60000?n:300000; }
 
+  function quoteCacheKey(tk){
+    if(typeof getYahooSymbol==='function'){
+      const y=getYahooSymbol(tk);
+      if(y) return y;
+    }
+    return getFinnhubSymbol(tk);
+  }
+
   function formatPx(n){
     return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  const FX_CACHE_KEY='nexus_sek_usd_v1';
+  const FX_TTL_MS=3600000;
+  let sekUsdRate=null;
+
+  function loadSekUsdFromCache(){
+    try{
+      const raw=sessionStorage.getItem(FX_CACHE_KEY);
+      if(!raw) return;
+      const o=JSON.parse(raw);
+      if(o&&o.rate>0&&Date.now()-o.at<FX_TTL_MS) sekUsdRate=o.rate;
+    }catch(e){}
+  }
+
+  function persistSekUsd(rate){
+    sekUsdRate=rate;
+    try{ sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify({rate,at:Date.now()})); }catch(e){}
+  }
+
+  function stockNeedsSekFx(tk){
+    const st=typeof S!=='undefined'?S[tk]:null;
+    return !!(st&&(st.ccy==='SEK'||st.yahooSym));
+  }
+
+  function ensureSekUsdRate(){
+    if(sekUsdRate>0) return Promise.resolve(sekUsdRate);
+    loadSekUsdFromCache();
+    if(sekUsdRate>0) return Promise.resolve(sekUsdRate);
+    if(!window.NexusYahooApi) return Promise.resolve(null);
+    return NexusYahooApi.fetchQuote('SEKUSD=X').then(j=>{
+      const r=j&&j.c>0?Number(j.c):null;
+      if(r) persistSekUsd(r);
+      return sekUsdRate;
+    });
+  }
+
+  function toUsdQuote(tk,j){
+    if(!j||!stockNeedsSekFx(tk)||!sekUsdRate) return j;
+    const fx=sekUsdRate;
+    const c=j.c!=null?Number(j.c)*fx:null;
+    const pc=j.pc!=null?Number(j.pc)*fx:null;
+    const dp=j.dp!=null?Number(j.dp):null;
+    return{c,pc,dp};
+  }
+
+  function quotePollActive(){
+    if(finnhubActive()) return true;
+    if(!window.NexusYahooApi||typeof getActiveStocks!=='function') return false;
+    return getActiveStocks().some(tk=>stockNeedsSekFx(tk));
   }
 
   function loadPersistedQuoteCache(){
@@ -187,7 +245,7 @@
 
   function parsePxNumber(px){
     if(px==null) return null;
-    const n=Number(String(px).replace(/[$,]/g,''));
+    const n=Number(String(px).replace(/[^\d.-]/g,''));
     return Number.isFinite(n)&&n>0?n:null;
   }
 
@@ -212,8 +270,8 @@
     else if(pc&&pc>0) st.ch=(c-pc)/pc*100;
     st._quoteSource=source;
     st._livePx=source==='live';
-    const sym=getFinnhubSymbol(tk);
-    persistQuoteCache(sym,{c,pc:pc||quoteCache[sym]?.pc,at:Date.now(),source});
+    const sym=quoteCacheKey(tk);
+    if(sym) persistQuoteCache(sym,{c,pc:pc||quoteCache[sym]?.pc,at:Date.now(),source});
     return true;
   }
 
@@ -225,13 +283,14 @@
     st.ch=0;
     st._quoteSource=source;
     st._livePx=false;
-    const sym=getFinnhubSymbol(tk);
-    persistQuoteCache(sym,{c:pc,pc,at:Date.now(),source});
+    const sym=quoteCacheKey(tk);
+    if(sym) persistQuoteCache(sym,{c:pc,pc,at:Date.now(),source});
     return true;
   }
 
   function applyQuoteFromCache(tk){
-    const sym=getFinnhubSymbol(tk);
+    const sym=quoteCacheKey(tk);
+    if(!sym) return false;
     const qc=quoteCache[sym];
     if(!qc) return false;
     if(qc.source==='live'&&qc.c>0) return applyQuoteFromValues(tk,qc.c,qc.pc,null,'cache');
@@ -307,7 +366,7 @@
   }
 
   function finishSweepStatus(liveCount,closeCount,updated){
-    if(!finnhubActive()){
+    if(!quotePollActive()){
       setLiveStatus('static');
       return;
     }
@@ -326,8 +385,18 @@
   }
 
   function fetchQuote(tk){
-    if(!finnhubActive()||typeof S==='undefined'||!S[tk]||!api()) return Promise.resolve(false);
+    if(typeof S==='undefined'||!S[tk]) return Promise.resolve(false);
+    const ySym=typeof getYahooSymbol==='function'?getYahooSymbol(tk):null;
+    const needsFx=stockNeedsSekFx(tk);
+    const yahooFetch=()=>{
+      if(!ySym||!window.NexusYahooApi) return Promise.resolve(false);
+      const chain=needsFx?ensureSekUsdRate():Promise.resolve(sekUsdRate);
+      return chain.then(()=>NexusYahooApi.fetchQuote(ySym).then(j=>applyQuote(tk,toUsdQuote(tk,j))));
+    };
+    if(ySym) return yahooFetch();
+    if(!finnhubActive()||!api()) return Promise.resolve(false);
     const sym=getFinnhubSymbol(tk);
+    if(!sym) return Promise.resolve(false);
     return api().fetchJson('quote',{symbol:sym}).then(j=>applyQuote(tk,j));
   }
 
@@ -335,14 +404,17 @@
     if(sym==null||typeof S==='undefined') return null;
     const u=String(sym).toUpperCase();
     for(const tk of Object.keys(S)){
-      if(getFinnhubSymbol(tk).toUpperCase()===u) return tk;
+      const fh=getFinnhubSymbol(tk);
+      if(fh&&fh.toUpperCase()===u) return tk;
+      const ys=typeof getYahooSymbol==='function'?getYahooSymbol(tk):null;
+      if(ys&&ys.toUpperCase()===u) return tk;
     }
     return null;
   }
 
   async function runPollSweep(opts){
     opts=opts||{};
-    if(!finnhubActive()) return;
+    if(!quotePollActive()) return;
     if(pollBusy){
       pendingResweep=true;
       pendingResweepOpts=opts;
@@ -356,6 +428,7 @@
     const PRIORITY_N=8;
     let updated=0,liveCount=0,closeCount=0;
     try{
+      if(getActiveStocks().some(tk=>stockNeedsSekFx(tk))) await ensureSekUsdRate();
       const list=sortedActiveTickers();
       for(let i=0;i<list.length;i++){
         const result=await fetchQuote(list[i]);
@@ -420,7 +493,7 @@
       S[tk]._quoteSource='live';
       S[tk]._livePx=true;
       hasEverLive=true;
-      const sym=getFinnhubSymbol(tk);
+      const sym=quoteCacheKey(tk);
       const qc=quoteCache[sym];
       if(qc&&qc.pc) S[tk].ch=(p-qc.pc)/qc.pc*100;
       patchTickerInDom(tk);
@@ -441,12 +514,13 @@
   }
 
   loadPersistedQuoteCache();
+  loadSekUsdFromCache();
 
   window.NexusLivePrices={
     start(){
-      if(!finnhubActive()){
+      if(!quotePollActive()){
         setLiveStatus('static');
-        console.info('[Nexus] Finnhub: set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in finnhub-key.js');
+        console.info('[Nexus] Quotes: set FINNHUB_API_KEY on Vercel or NEXUS_FINNHUB_KEY in finnhub-key.js');
         return;
       }
       window.NexusLivePrices.stop();
