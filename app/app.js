@@ -3,6 +3,10 @@
 // Owns: renderSummaryBar, renderCenter dispatcher, all click handlers, Add Ticker modal.
 
 function renderSummaryBar(){
+  if(CTAB==='global'&&typeof NexusGlobalIndex!=='undefined'&&typeof renderGlobalSummary==='function'){
+    renderGlobalSummary(NexusGlobalIndex.getGlobalIndex());
+    return;
+  }
   if(NAV_MODE==='etf'){
     const sec=getEtfSector();
     const etf=getActiveEtf();
@@ -50,9 +54,11 @@ function renderSummaryBar(){
 
 function renderCenter(){
   const el=document.getElementById('cc');
-  if(typeof nexusSankeyDispose==='function') nexusSankeyDispose(el);
+  if(typeof nexusGlobalDispose==='function') nexusGlobalDispose(el);
+  else if(typeof nexusSankeyDispose==='function') nexusSankeyDispose(el);
   el.innerHTML='';
-  if(NAV_MODE==='etf'){renderEtfView(el);return;}
+  if(NAV_MODE==='etf'&&CTAB!=='global'){renderEtfView(el);return;}
+  if(CTAB==='global'){renderGlobalView(el);return;}
   const p=getCurrentP();
   if(CTAB==='dashboard')   {renderDashboardView(el);return;}
   if(CTAB==='sankey')      {renderSankeyFlowView(el);return;}
@@ -67,7 +73,7 @@ function setSankeyWeight(w){
   if(w!=='mcap'&&w!=='rev') return;
   SANKEY_WEIGHT=w;
   try{ sessionStorage.setItem('nexus_sankey_w',w); }catch(e){}
-  if(CTAB==='sankey') renderCenter();
+  if(CTAB==='sankey'||(CTAB==='global'&&GLOBAL_SUB==='flow')) renderCenter();
 }
 
 // ── Click handlers ─────────────────────────────────────────────────────────────

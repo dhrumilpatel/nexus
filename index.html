@@ -85,12 +85,13 @@
   <!-- CENTER: TABS + VIEWS -->
   <main class="cz" id="cz">
     <div class="ctabs">
-      <button class="ctab on" onclick="setCTab('dashboard',this)">&#9632; DASHBOARD</button>
-      <button class="ctab" onclick="setCTab('pyramid',this)">&#9650; PYRAMID</button>
-      <button class="ctab" onclick="setCTab('sankey',this)">&#8764; SANKEY FLOW</button>
-      <button class="ctab" onclick="setCTab('wheel',this)">&#9689; WHEEL</button>
-      <button class="ctab" onclick="setCTab('fundamentals',this)">&#128202; SCREENER</button>
-      <button class="ctab" onclick="setCTab('news',this)">&#10790; INTELLIGENCE</button>
+      <button class="ctab on" data-ctab="dashboard" onclick="setCTab('dashboard',this)">&#9632; DASHBOARD</button>
+      <button class="ctab" data-ctab="pyramid" onclick="setCTab('pyramid',this)">&#9650; PYRAMID</button>
+      <button class="ctab" data-ctab="sankey" onclick="setCTab('sankey',this)">&#8764; SANKEY FLOW</button>
+      <button class="ctab" data-ctab="wheel" onclick="setCTab('wheel',this)">&#9689; WHEEL</button>
+      <button class="ctab" data-ctab="global" onclick="setCTab('global',this)">&#9670; GLOBAL</button>
+      <button class="ctab" data-ctab="fundamentals" onclick="setCTab('fundamentals',this)">&#128202; SCREENER</button>
+      <button class="ctab" data-ctab="news" onclick="setCTab('news',this)">&#10790; INTELLIGENCE</button>
     </div>
     <div class="sumbar" id="sumbar"></div>
     <div id="cc" style="flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden"></div>
@@ -131,12 +132,15 @@
 <script src="app/etf-api.js"></script>
 <script src="app/finnhub-dashboard.js"></script>
 <script src="app/live-prices.js"></script>
+<script src="app/global-index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.30.4/dist/cytoscape.min.js"></script>
 <!-- LAYER 3: Views (stateless renderers, order within group doesn't matter) -->
 <script src="views/view-dashboard.js"></script>
 <script src="views/view-pyramid.js"></script>
 <script src="views/view-sankey-flow.js"></script>
 <script src="views/view-wheel.js"></script>
+<script src="views/view-global.js"></script>
 <script src="views/view-screener.js"></script>
 <script src="views/view-news.js"></script>
 <script src="views/view-flat.js"></script>
