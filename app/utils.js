@@ -50,12 +50,20 @@ function maxMcapWeightTicker(tickerKeys){
 
 /** Finnhub/WebSocket symbol (no exchange prefix for US; .L suffix for London). */
 function getFinnhubSymbol(tk){
+  const st=typeof S!=='undefined'?S[tk]:null;
+  if(st?.yahooSym) return null;
   const tv=getTVSym(tk);
   const m=tv.match(/^(NASDAQ|NYSE|AMEX):(.+)$/i);
   if(m) return m[2];
   if(/^LON:/i.test(tv)) return tv.slice(4)+'.L';
   if(/^TSX:/i.test(tv)) return tv.slice(4)+'.TO';
   return tk;
+}
+
+/** Yahoo Finance symbol for intl quotes (Finnhub free tier misses OMX etc.). */
+function getYahooSymbol(tk){
+  const st=typeof S!=='undefined'?S[tk]:null;
+  return st?.yahooSym||null;
 }
 
 function getTVSym(tk){
@@ -69,6 +77,8 @@ function getTVSym(tk){
     ASML:'NASDAQ:ASML',TSM:'NYSE:TSM',OXIG:'LON:OXIG',
     LHX:'NYSE:LHX',LDOS:'NYSE:LDOS',BAH:'NYSE:BAH',IRDM:'NASDAQ:IRDM',
     ASTS:'NASDAQ:ASTS',PL:'NYSE:PL',RKLB:'NASDAQ:RKLB',
+    AAC:'OMXSTO:AAC',ACCON:'OMXSTO:ACCON',RAYB:'OMXSTO:RAY_B',SAABB:'OMXSTO:SAAB_B',UNIBAP:'OMXSTO:UNIBAP',
+    BBAI:'NYSE:BBAI',PI:'NASDAQ:PI',RBOT:'NYSE:RBOT',RXRX:'NASDAQ:RXRX',SDGR:'NASDAQ:SDGR',
     FLY:'NYSE:FLY',SATL:'NASDAQ:SATL',SPIR:'NYSE:SPIR',BKSY:'NYSE:BKSY',
     VSAT:'NASDAQ:VSAT',GSAT:'NYSE:GSAT',SATS:'NASDAQ:SATS',TSAT:'TSX:TSAT',
     LUNR:'NASDAQ:LUNR',MDA:'TSX:MDA',RDW:'NYSE:RDW',SIDU:'NASDAQ:SIDU',

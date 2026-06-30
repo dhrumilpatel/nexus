@@ -1,4 +1,4 @@
-// NEXUS — Live quotes via Finnhub (REST + optional WebSocket).
+// NEXUS — Live quotes via Finnhub (REST + optional WebSocket) + Yahoo fallback for intl.
 // Finnhub free tier: 60 REST calls/minute — we space /quote requests by REST_GAP_MS.
 // Price updates patch DOM only (data-nexus-tk) so the pyramid layout does not rebuild every tick.
 // Fallback: live c → prior close pc → session cache → stocks.js seed (unchanged).
@@ -23,8 +23,19 @@
 
   function pollMs(){ const n=+window.NEXUS_FINNHUB_POLL_MS; return n>=60000?n:300000; }
 
-  function formatPx(n){
-    return '$'+Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  function quoteCacheKey(tk){
+    if(typeof getYahooSymbol==='function'){
+      const y=getYahooSymbol(tk);
+      if(y) return y;
+    }
+    return getFinnhubSymbol(tk);
+  }
+
+  function formatPx(n,tk){
+    const ccy=tk&&typeof S!=='undefined'&&S[tk]?.ccy;
+    const fmt=Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(ccy==='SEK') return 'SEK '+fmt;
+    return '$'+fmt;
   }
 
   function loadPersistedQuoteCache(){
@@ -187,7 +198,7 @@
 
   function parsePxNumber(px){
     if(px==null) return null;
-    const n=Number(String(px).replace(/[$,]/g,''));
+    const n=Number(String(px).replace(/[^\d.-]/g,''));
     return Number.isFinite(n)&&n>0?n:null;
   }
 
@@ -207,13 +218,13 @@
     const st=S[tk];
     if(!st||!c||c<=0) return false;
     scaleMcapFromPrice(tk,c);
-    st.px=formatPx(c);
+    st.px=formatPx(c,tk);
     if(typeof dp==='number'&&!Number.isNaN(dp)) st.ch=dp;
     else if(pc&&pc>0) st.ch=(c-pc)/pc*100;
     st._quoteSource=source;
     st._livePx=source==='live';
-    const sym=getFinnhubSymbol(tk);
-    persistQuoteCache(sym,{c,pc:pc||quoteCache[sym]?.pc,at:Date.now(),source});
+    const sym=quoteCacheKey(tk);
+    if(sym) persistQuoteCache(sym,{c,pc:pc||quoteCache[sym]?.pc,at:Date.now(),source});
     return true;
   }
 
@@ -221,17 +232,18 @@
     const st=S[tk];
     if(!st||!pc||pc<=0) return false;
     scaleMcapFromPrice(tk,pc);
-    st.px=formatPx(pc);
+    st.px=formatPx(pc,tk);
     st.ch=0;
     st._quoteSource=source;
     st._livePx=false;
-    const sym=getFinnhubSymbol(tk);
-    persistQuoteCache(sym,{c:pc,pc,at:Date.now(),source});
+    const sym=quoteCacheKey(tk);
+    if(sym) persistQuoteCache(sym,{c:pc,pc,at:Date.now(),source});
     return true;
   }
 
   function applyQuoteFromCache(tk){
-    const sym=getFinnhubSymbol(tk);
+    const sym=quoteCacheKey(tk);
+    if(!sym) return false;
     const qc=quoteCache[sym];
     if(!qc) return false;
     if(qc.source==='live'&&qc.c>0) return applyQuoteFromValues(tk,qc.c,qc.pc,null,'cache');
@@ -326,8 +338,14 @@
   }
 
   function fetchQuote(tk){
-    if(!finnhubActive()||typeof S==='undefined'||!S[tk]||!api()) return Promise.resolve(false);
+    if(typeof S==='undefined'||!S[tk]) return Promise.resolve(false);
+    const ySym=typeof getYahooSymbol==='function'?getYahooSymbol(tk):null;
+    if(ySym&&window.NexusYahooApi){
+      return NexusYahooApi.fetchQuote(ySym).then(j=>applyQuote(tk,j));
+    }
+    if(!finnhubActive()||!api()) return Promise.resolve(false);
     const sym=getFinnhubSymbol(tk);
+    if(!sym) return Promise.resolve(false);
     return api().fetchJson('quote',{symbol:sym}).then(j=>applyQuote(tk,j));
   }
 
@@ -335,7 +353,10 @@
     if(sym==null||typeof S==='undefined') return null;
     const u=String(sym).toUpperCase();
     for(const tk of Object.keys(S)){
-      if(getFinnhubSymbol(tk).toUpperCase()===u) return tk;
+      const fh=getFinnhubSymbol(tk);
+      if(fh&&fh.toUpperCase()===u) return tk;
+      const ys=typeof getYahooSymbol==='function'?getYahooSymbol(tk):null;
+      if(ys&&ys.toUpperCase()===u) return tk;
     }
     return null;
   }
@@ -416,11 +437,11 @@
       if(!tk||!S[tk]) return;
       const p=Number(t.p);
       scaleMcapFromPrice(tk,p);
-      S[tk].px=formatPx(p);
+      S[tk].px=formatPx(p,tk);
       S[tk]._quoteSource='live';
       S[tk]._livePx=true;
       hasEverLive=true;
-      const sym=getFinnhubSymbol(tk);
+      const sym=quoteCacheKey(tk);
       const qc=quoteCache[sym];
       if(qc&&qc.pc) S[tk].ch=(p-qc.pc)/qc.pc*100;
       patchTickerInDom(tk);

@@ -27,7 +27,7 @@ Poll `NEXUS_FINNHUB_POLL_MS` (~60s); prior-close fallback when `c` missing; clic
 
 ## WS (local)
 
-`getFinnhubSymbol(tk)` not `getTVSym` · ~50 symbol cap · REST fallback off-hours.
+`getFinnhubSymbol(tk)` not `getTVSym` · ~50 symbol cap · REST fallback off-hours. **Swedish / intl:** stocks with `yahooSym` in `stocks.js` poll `/api/yahoo` instead (Finnhub free tier is US-only).
 
 ---
 

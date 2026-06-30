@@ -20,6 +20,19 @@ const THEMES_DATA={
       {id:'foundry', name:'Equipment & Foundry',  theme:'The tools that build NVIDIA chips — EUV lithography, etch, inspection, advanced packaging', stocks:['ASML','LRCX','KLAC','AMAT','TSM','AMKR'],up:true},
     ]
   },
+  GIRISH:{
+    type:'pyramid',
+    label:'Girish',
+    label_full:'GIRISH WATCHLIST',
+    color:'#38bdf8',
+    layers:[
+      {id:'quantum',name:'Quantum',theme:'QPU hardware + quantum security',stocks:['IONQ','RGTI','QBTS','QUBT','ARQQ']},
+      {id:'space',name:'Space & defense',theme:'Launch, satellites, Swedish defense/edge compute',stocks:['RKLB','AAC','SAABB','UNIBAP']},
+      {id:'photonic_semi',name:'Photonics & semis',theme:'Optics, equipment, foundry',stocks:['AAOI','AIXA','LRCX','TSM']},
+      {id:'robotics',name:'Robotics & autonomy',theme:'Humanoids, surgical robotics, EV autonomy',stocks:['TSLA','RBOT']},
+      {id:'ai_other',name:'AI, sensing & bio',theme:'Defense AI, RFID, radar, medtech, comp-chem',stocks:['BBAI','PI','ACCON','RXRX','RAYB','SDGR']},
+    ]
+  },
   // Planned Phase 1B additions:
   // INDIA_AI:  India Data Center & AI Infrastructure (see artifacts/integrations for schema)
   // AI_MEMORY: AI Memory Supercycle — MU, SNDK, SKH, WDC

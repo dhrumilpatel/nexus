@@ -17,7 +17,7 @@
 | `api-sec-edgar.md` | SEC EDGAR | 3 | Pending |
 | `cache/README.md` | Node cache | 2 | Optional |
 
-Live prices + KPI: `api-finnhub.md`, `live-prices.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
+Live prices + KPI: `api-finnhub.md`, `live-prices.js`. **Intl OMX quotes** (e.g. Swedish `.ST`): Yahoo proxy `/api/yahoo` when Finnhub free tier denies access — see `api/yahoo.js`, `yahoo-api.js`. Historical fundamentals: `api-fmp.md`, `app/api-fmp.js`, `app/rightpanel.js`. Charts: `api-tradingview.md`.
 
 **Sector infographic seeds:** PHOTONIC (40 names) and CYBER (21 names) from Lin @speculator_io decks — manual `px`/`mc`/`ytd` in `data/stocks.js`, pyramid layers in `data/sectors.js`; live Finnhub overwrites quotes on load.
 
