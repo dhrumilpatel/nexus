@@ -34,6 +34,12 @@ let NEWS_SRC='tv';
 let TRAJ_PER=8;
 const WL_LAYERS={};  // {layerId: bool} — watchlist section expand/collapse
 
+// GLOBAL tab (cross-sector visualizer)
+let GLOBAL_SUB='overlap';  // overlap (matrix) | flow | graph
+let GLOBAL_MIN_OVERLAP=2;
+let GLOBAL_TAG_FILTER='';  // '' | HYPERSCALER | AI | CLOUD
+let GLOBAL_GRAPH_LAYERS=false;  // advanced graph: show layer nodes
+
 // Navigation mode — 'sectors' | 'themes' | 'etf'
 let NAV_MODE='sectors';
 let CUR_THEME='NVIDIA';

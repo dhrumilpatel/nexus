@@ -16,7 +16,11 @@ function setSectorCSS(key){
 function updateCenterTabsForMode(){
   const cz=document.querySelector('.ctabs');
   if(!cz) return;
-  cz.style.display=NAV_MODE==='etf'?'none':'flex';
+  cz.style.display='flex';
+  cz.querySelectorAll('.ctab').forEach(btn=>{
+    const tab=btn.dataset.ctab||'';
+    btn.style.display=(NAV_MODE==='etf'&&tab!=='global')?'none':'';
+  });
 }
 
 function buildPills(){
