@@ -99,7 +99,37 @@
     return map;
   }
 
+  function groupedUniverses(index){
+    const sectors=[],themes=[];
+    (index?.universes||[]).forEach(u=>{
+      if(u.type==='sector') sectors.push(u);
+      else if(u.type==='theme') themes.push(u);
+    });
+    return{sectors,themes,all:[...sectors,...themes]};
+  }
+
+  function mapDisplayLabel(u){
+    if(!u) return'';
+    if(u.type==='sector') return`${u.label} sector`;
+    if(u.type==='theme') return`${u.label} theme`;
+    return u.label;
+  }
+
+  function stockMapLabels(index,tk){
+    const ov=index?.overlap?.[tk];
+    if(!ov) return[];
+    return ov.universes.map(key=>{
+      const u=(index.universes||[]).find(x=>x.key===key);
+      return u?u.label:key;
+    });
+  }
+
+  function membershipFor(index,tk,universeKey){
+    return(index?.memberships||[]).find(m=>m.tk===tk&&m.universeKey===universeKey)||null;
+  }
+
   window.NexusGlobalIndex={
-    getGlobalIndex,invalidateGlobalIndex,matchesTagFilter,membershipMap,HYPERSCALER_SET
+    getGlobalIndex,invalidateGlobalIndex,matchesTagFilter,membershipMap,
+    groupedUniverses,mapDisplayLabel,stockMapLabels,membershipFor,HYPERSCALER_SET
   };
 })();
